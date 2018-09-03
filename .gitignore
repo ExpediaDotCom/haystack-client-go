@@ -13,3 +13,4 @@
 vendor/
 span.pb.go
 spanAgent.pb.go
+.idea/

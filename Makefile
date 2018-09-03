@@ -4,6 +4,7 @@ codegen: idl-submodule
 	cp haystack-idl/proto/agent/spanAgent.proto haystack-idl/proto/.
 	protoc -I haystack-idl/proto/  --go_out=plugins=grpc:. haystack-idl/proto/span.proto	
 	protoc -I haystack-idl/proto/  --go_out=plugins=grpc:. haystack-idl/proto/spanAgent.proto
+	rm 	haystack-idl/proto/spanAgent.proto
 
 idl-submodule:
 	git submodule init
