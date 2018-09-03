@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+go get github.com/kisielk/errcheck
+export PATH=$PATH:$GOBIN
+
+errors=()
+failedErrcheck=$(errcheck -ignorepkg github.com/golang/protobuf/proto .)
+if [ "$failedErrcheck" ]; then
+    errors+=( "$failedErrcheck" )
+fi
+
+if [ ${#errors[@]} -eq 0 ]; then
+	echo 'Congratulations!  All Go source files have been errchecked.'
+else
+	{
+		echo "Errors from errcheck:"
+		for err in "${errors[@]}"; do
+			echo "$err"
+		done
+		echo
+		echo 'Please fix the above errors. You can test via "errcheck" and commit the result.'
+		echo
+	} >&2
+	false
+fi
