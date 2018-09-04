@@ -11,11 +11,12 @@ idl-submodule:
 	git submodule update
 
 .PHONY: test
-test: glide codegen
+test: codegen
 	go test
 
 .PHONY: glide
 glide:
+	glide --version || go get github.com/Masterminds/glide
 	glide update
 
 .PHONY: validate

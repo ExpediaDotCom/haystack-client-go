@@ -12,5 +12,5 @@ Check our detailed [example](example_test.go) on how to initialize tracer, start
 
 
 ## How to build this library?
-
+`make glide` - If you are running for the very first time
 `make test validate`

@@ -22,4 +22,4 @@ before_script:
   - curl https://glide.sh/get | sh
 
 script:
-  - make test validate
+  - make glide test validate
