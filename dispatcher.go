@@ -22,6 +22,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/opentracing/opentracing-go/ext"
 	"github.com/opentracing/opentracing-go/log"
 
 	"golang.org/x/net/context"
@@ -216,6 +217,14 @@ func (d *AgentDispatcher) convertToTag(key string, value interface{}) *Tag {
 			},
 			Type: Tag_STRING,
 		}
+	case int:
+		return &Tag{
+			Key: key,
+			Myvalue: &Tag_VLong{
+				VLong: int64(value.(int)),
+			},
+			Type: Tag_LONG,
+		}
 	case int32:
 		return &Tag{
 			Key: key,
@@ -224,11 +233,43 @@ func (d *AgentDispatcher) convertToTag(key string, value interface{}) *Tag {
 			},
 			Type: Tag_LONG,
 		}
+	case int16:
+		return &Tag{
+			Key: key,
+			Myvalue: &Tag_VLong{
+				VLong: int64(value.(int16)),
+			},
+			Type: Tag_LONG,
+		}
 	case int64:
 		return &Tag{
 			Key: key,
 			Myvalue: &Tag_VLong{
 				VLong: value.(int64),
+			},
+			Type: Tag_LONG,
+		}
+	case uint16:
+		return &Tag{
+			Key: key,
+			Myvalue: &Tag_VLong{
+				VLong: int64(value.(uint16)),
+			},
+			Type: Tag_LONG,
+		}
+	case uint32:
+		return &Tag{
+			Key: key,
+			Myvalue: &Tag_VLong{
+				VLong: int64(value.(uint32)),
+			},
+			Type: Tag_LONG,
+		}
+	case uint64:
+		return &Tag{
+			Key: key,
+			Myvalue: &Tag_VLong{
+				VLong: int64(value.(uint64)),
 			},
 			Type: Tag_LONG,
 		}
@@ -263,6 +304,14 @@ func (d *AgentDispatcher) convertToTag(key string, value interface{}) *Tag {
 				VBytes: value.([]byte),
 			},
 			Type: Tag_BINARY,
+		}
+	case ext.SpanKindEnum:
+		return &Tag{
+			Key: key,
+			Myvalue: &Tag_VStr{
+				VStr: string(value.(ext.SpanKindEnum)),
+			},
+			Type: Tag_STRING,
 		}
 	default:
 		panic(fmt.Errorf("unknown format %v", v))

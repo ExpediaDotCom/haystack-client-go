@@ -26,10 +26,10 @@ import (
 /*Propagator defines the interface for injecting and extracing the SpanContext from the carrier*/
 type Propagator interface {
 	// Inject takes `SpanContext` and injects it into `carrier`
-	Inject(ctx SpanContext, carrier interface{}) error
+	Inject(ctx *SpanContext, carrier interface{}) error
 
 	// Extract `SpanContext` from the `carrier`
-	Extract(carrier interface{}) (SpanContext, error)
+	Extract(carrier interface{}) (*SpanContext, error)
 }
 
 /*Codex defines the interface for encoding and decoding the propagated data*/
@@ -112,7 +112,7 @@ type TextMapPropagator struct {
 }
 
 /*Inject injects the span context in the carrier*/
-func (p *TextMapPropagator) Inject(ctx SpanContext, carrier interface{}) error {
+func (p *TextMapPropagator) Inject(ctx *SpanContext, carrier interface{}) error {
 	carrierMap := carrier.(map[string]string)
 	carrierMap[p.opts.TraceIDKEY()] = ctx.TraceID()
 	carrierMap[p.opts.SpanIDKEY()] = ctx.SpanID()
@@ -127,7 +127,7 @@ func (p *TextMapPropagator) Inject(ctx SpanContext, carrier interface{}) error {
 }
 
 /*Extract the span context from the carrier*/
-func (p *TextMapPropagator) Extract(carrier interface{}) (SpanContext, error) {
+func (p *TextMapPropagator) Extract(carrier interface{}) (*SpanContext, error) {
 	baggage := make(map[string](string))
 	carrierMap := carrier.(map[string]string)
 	for k, v := range carrierMap {
@@ -136,7 +136,7 @@ func (p *TextMapPropagator) Extract(carrier interface{}) (SpanContext, error) {
 			baggage[keySansPrefix] = p.codex.Decode(v)
 		}
 	}
-	return SpanContext{
+	return &SpanContext{
 		traceID:  carrierMap[p.opts.TraceIDKEY()],
 		spanID:   carrierMap[p.opts.SpanIDKEY()],
 		parentID: carrierMap[p.opts.ParentSpanIDKEY()],

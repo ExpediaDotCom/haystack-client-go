@@ -46,6 +46,9 @@ func NewTracer(
 		serviceName: serviceName,
 		dispatcher:  dispatcher,
 	}
+	tracer.propagtors = make(map[interface{}]Propagator)
+	tracer.propagtors[opentracing.TextMap] = NewDefaultTextMapPropagator()
+	tracer.propagtors[opentracing.HTTPHeaders] = NewTextMapPropagator(PropagatorOpts{}, URLCodex{})
 
 	for _, option := range options {
 		option(tracer)
@@ -137,7 +140,7 @@ func (tracer *Tracer) createSpanContext(parent *SpanContext) *SpanContext {
 
 /*Inject implements Inject() method of opentracing.Tracer*/
 func (tracer *Tracer) Inject(ctx opentracing.SpanContext, format interface{}, carrier interface{}) error {
-	c, ok := ctx.(SpanContext)
+	c, ok := ctx.(*SpanContext)
 	if !ok {
 		return opentracing.ErrInvalidSpanContext
 	}

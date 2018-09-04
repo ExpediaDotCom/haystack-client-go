@@ -27,20 +27,18 @@ type TracerOption func(tracer *Tracer)
 /*TracerOptions a list of tracer options*/
 type TracerOptions struct{}
 
-/*NewTracerOptions creates an object that holds all tracer options*/
-func NewTracerOptions() *TracerOptions {
-	return &TracerOptions{}
-}
+/*TracerOptionsFactory factory to create multiple tracer options*/
+var TracerOptionsFactory TracerOptions
 
 /*Propagator registers a new Propagator*/
-func (t *TracerOptions) Propagator(format interface{}, propagator Propagator) TracerOption {
+func (t TracerOptions) Propagator(format interface{}, propagator Propagator) TracerOption {
 	return func(tracer *Tracer) {
 		tracer.propagtors[format] = propagator
 	}
 }
 
 /*Tag adds a common tag in every span*/
-func (t *TracerOptions) Tag(key string, value interface{}) TracerOption {
+func (t TracerOptions) Tag(key string, value interface{}) TracerOption {
 	return func(tracer *Tracer) {
 		tracer.commonTags = append(tracer.commonTags, opentracing.Tag{Key: key, Value: value})
 	}

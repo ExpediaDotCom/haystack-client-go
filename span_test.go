@@ -34,7 +34,7 @@ type SpanTestSuite struct {
 
 func (suite *SpanTestSuite) SetupTest() {
 	suite.dispatcher = NewInMemoryDispatcher()
-	tracer, closer := NewTracer("my-service", suite.dispatcher, NewTracerOptions().Tag("t1", "v1"))
+	tracer, closer := NewTracer("my-service", suite.dispatcher, TracerOptionsFactory.Tag("t1", "v1"))
 	suite.tracer = tracer
 	suite.closer = closer
 }

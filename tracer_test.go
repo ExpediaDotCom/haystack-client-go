@@ -34,7 +34,7 @@ type TracerTestSuite struct {
 
 func (suite *TracerTestSuite) SetupTest() {
 	suite.dispatcher = NewInMemoryDispatcher()
-	tracer, closer := NewTracer("my-service", suite.dispatcher, NewTracerOptions().Tag("t1", "v1"))
+	tracer, closer := NewTracer("my-service", suite.dispatcher, TracerOptionsFactory.Tag("t1", "v1"))
 	suite.tracer = tracer
 	suite.closer = closer
 }
@@ -74,6 +74,26 @@ func (suite *TracerTestSuite) TestTracerProperties() {
 		suite.Equal(span.Tags()[1], tag, "tag key should be user_agent")
 	}
 }
+
+func (suite *TracerTestSuite) TestTracerInject() {
+	carrier := make(map[string]string)
+	span1 := suite.tracer.StartSpan("op1")
+	err := suite.tracer.Inject(span1.Context(), opentracing.HTTPHeaders, carrier)
+	if err != nil {
+		panic(err)
+	}
+	suite.Len(carrier, 3, "trace-id, span-id, parent-id should be injected in the http headers")
+
+	spanContext, err := suite.tracer.Extract(opentracing.HTTPHeaders, carrier)
+	if err != nil {
+		panic(err)
+	}
+
+	suite.Equal(carrier["Trace-ID"], spanContext.(*SpanContext).TraceID())
+	suite.Equal(carrier["Span-ID"], spanContext.(*SpanContext).SpanID())
+	suite.Equal(carrier["Parent-ID"], spanContext.(*SpanContext).ParentID())
+}
+
 func TestTracerTestSuite(t *testing.T) {
 	suite.Run(t, new(TracerTestSuite))
 }
