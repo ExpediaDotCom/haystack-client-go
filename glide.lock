@@ -1,5 +1,5 @@
 hash: e8ce83faae9ee98e4a04d58af30afdba9f413bff6084c28475bc591af790265a
-updated: 2018-09-03T07:40:28.574072982-07:00
+updated: 2018-09-03T22:23:30.116213083-07:00
 imports:
 - name: github.com/client9/misspell
   version: c0b55c8239520f6b5aa15a0207ca8b28027ba49e
@@ -73,7 +73,7 @@ imports:
   - internal/timeseries
   - trace
 - name: golang.org/x/sys
-  version: fa5fdf94c78965f1aa8423f0cc50b8b8d728b05a
+  version: 2b024373dcd9800f0cae693839fac6ede8d64a8c
   subpackages:
   - unix
 - name: golang.org/x/text
@@ -146,6 +146,10 @@ imports:
   - staticcheck/vrp
   - version
 testImports:
+- name: github.com/pmezard/go-difflib
+  version: 792786c7400a136282c1664665ae0a8db921c6c2
+  subpackages:
+  - difflib
 - name: github.com/stretchr/testify
   version: f35b8ab0b5a2cef36673838d662e249dd9c94686
   subpackages:
