@@ -24,67 +24,50 @@ import (
 /*SpanContext implements opentracing.spanContext*/
 type SpanContext struct {
 	// traceID represents globally unique ID of the trace.
-	// Usually generated as a random number.
-	traceID string
+	TraceID string
 
-	// spanID represents span ID that must be unique within its trace,
-	// but does not have to be globally unique.
-	spanID string
+	// spanID represents span ID that must be unique within its trace
+	SpanID string
 
 	// parentID refers to the ID of the parent span.
-	// Should be 0 if the current span is a root span.
-	parentID string
+	// Should be empty if the current span is a root span.
+	ParentID string
 
-	// Distributed Context baggage. The is a snapshot in time.
-	baggage map[string]string
+	//Context baggage. The is a snapshot in time.
+	Baggage map[string]string
 }
 
 // IsValid indicates whether this context actually represents a valid trace.
 func (context SpanContext) IsValid() bool {
-	return context.traceID != "" && context.spanID != ""
+	return context.TraceID != "" && context.SpanID != ""
 }
 
 /*ForeachBaggageItem implements opentracing.spancontext*/
 func (context SpanContext) ForeachBaggageItem(handler func(k, v string) bool) {
-	for k, v := range context.baggage {
+	for k, v := range context.Baggage {
 		if !handler(k, v) {
 			break
 		}
 	}
 }
 
-// TraceID returns the trace ID of this span context
-func (context SpanContext) TraceID() string {
-	return context.traceID
-}
-
-// SpanID returns the span ID of this span context
-func (context SpanContext) SpanID() string {
-	return context.spanID
-}
-
-// ParentID returns the parent span ID of this span context
-func (context SpanContext) ParentID() string {
-	return context.parentID
-}
-
 // WithBaggageItem creates a new context with an extra baggage item.
 func (context SpanContext) WithBaggageItem(key, value string) *SpanContext {
 	var newBaggage map[string]string
-	if context.baggage == nil {
+	if context.Baggage == nil {
 		newBaggage = map[string]string{key: value}
 	} else {
-		newBaggage = make(map[string]string, len(context.baggage)+1)
-		for k, v := range context.baggage {
+		newBaggage = make(map[string]string, len(context.Baggage)+1)
+		for k, v := range context.Baggage {
 			newBaggage[k] = v
 		}
 		newBaggage[key] = value
 	}
 	return &SpanContext{
-		traceID:  context.traceID,
-		spanID:   context.spanID,
-		parentID: context.parentID,
-		baggage:  newBaggage,
+		TraceID:  context.TraceID,
+		SpanID:   context.SpanID,
+		ParentID: context.ParentID,
+		Baggage:  newBaggage,
 	}
 }
 

@@ -76,7 +76,7 @@ type FileDispatcher struct {
 
 /*NewFileDispatcher creates a new file dispatcher*/
 func NewFileDispatcher(filename string) Dispatcher {
-	fd, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY, 0644)
+	fd, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
 		panic(err)
 	}
@@ -97,7 +97,7 @@ func (d *FileDispatcher) SetLogger(logger Logger) {
 
 /*Dispatch dispatches the span object*/
 func (d *FileDispatcher) Dispatch(span *_Span) {
-	_, err := d.fileHandle.WriteString(span.String())
+	_, err := d.fileHandle.WriteString(span.String() + "\n")
 	if err != nil {
 		panic(err)
 	}
@@ -154,9 +154,9 @@ func (d *AgentDispatcher) Dispatch(span *_Span) {
 	defer cancel()
 
 	result, err := d.client.Dispatch(ctx, &Span{
-		TraceId:       span.context.TraceID(),
-		SpanId:        span.context.SpanID(),
-		ParentSpanId:  span.context.ParentID(),
+		TraceId:       span.context.TraceID,
+		SpanId:        span.context.SpanID,
+		ParentSpanId:  span.context.ParentID,
 		ServiceName:   span.ServiceName(),
 		OperationName: span.OperationName(),
 		StartTime:     span.startTime.UnixNano() / int64(time.Microsecond),
