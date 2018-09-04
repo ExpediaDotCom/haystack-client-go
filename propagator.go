@@ -114,12 +114,12 @@ type TextMapPropagator struct {
 /*Inject injects the span context in the carrier*/
 func (p *TextMapPropagator) Inject(ctx *SpanContext, carrier interface{}) error {
 	carrierMap := carrier.(map[string]string)
-	carrierMap[p.opts.TraceIDKEY()] = ctx.TraceID()
-	carrierMap[p.opts.SpanIDKEY()] = ctx.SpanID()
-	carrierMap[p.opts.ParentSpanIDKEY()] = ctx.ParentID()
+	carrierMap[p.opts.TraceIDKEY()] = ctx.TraceID
+	carrierMap[p.opts.SpanIDKEY()] = ctx.SpanID
+	carrierMap[p.opts.ParentSpanIDKEY()] = ctx.ParentID
 
 	ctx.ForeachBaggageItem(func(key, value string) bool {
-		carrierMap[fmt.Sprintf("%s%s", p.opts.BaggageKeyPrefix(), key)] = p.codex.Encode(ctx.baggage[key])
+		carrierMap[fmt.Sprintf("%s%s", p.opts.BaggageKeyPrefix(), key)] = p.codex.Encode(ctx.Baggage[key])
 		return true
 	})
 
@@ -137,10 +137,10 @@ func (p *TextMapPropagator) Extract(carrier interface{}) (*SpanContext, error) {
 		}
 	}
 	return &SpanContext{
-		traceID:  carrierMap[p.opts.TraceIDKEY()],
-		spanID:   carrierMap[p.opts.SpanIDKEY()],
-		parentID: carrierMap[p.opts.ParentSpanIDKEY()],
-		baggage:  baggage,
+		TraceID:  carrierMap[p.opts.TraceIDKEY()],
+		SpanID:   carrierMap[p.opts.SpanIDKEY()],
+		ParentID: carrierMap[p.opts.ParentSpanIDKEY()],
+		Baggage:  baggage,
 	}, nil
 }
 

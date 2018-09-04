@@ -126,15 +126,15 @@ func (tracer *Tracer) StartSpan(
 func (tracer *Tracer) createSpanContext(parent *SpanContext) *SpanContext {
 	if parent == nil || !parent.IsValid() {
 		return &SpanContext{
-			traceID: tracer.idGenerator(),
-			spanID:  tracer.idGenerator(),
+			TraceID: tracer.idGenerator(),
+			SpanID:  tracer.idGenerator(),
 		}
 	}
 	return &SpanContext{
-		traceID:  parent.traceID,
-		spanID:   tracer.idGenerator(),
-		parentID: parent.spanID,
-		baggage:  parent.baggage,
+		TraceID:  parent.TraceID,
+		SpanID:   tracer.idGenerator(),
+		ParentID: parent.SpanID,
+		Baggage:  parent.Baggage,
 	}
 }
 

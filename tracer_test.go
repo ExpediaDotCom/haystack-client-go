@@ -64,9 +64,9 @@ func (suite *TracerTestSuite) TestTracerProperties() {
 	parentSpan := dispatcher.spans[1]
 	parentSpanContext := parentSpan.Context().(*SpanContext)
 
-	suite.Equal(parentSpanContext.TraceID(), childSpanContext.TraceID(), "trace id should match for both parent and child span")
-	suite.Equal(parentSpanContext.SpanID(), childSpanContext.ParentID(), "parent id should match for parent and child span")
-	suite.NotEqual(parentSpanContext.SpanID(), childSpanContext.SpanID(), "span id should be unique for parent and child span")
+	suite.Equal(parentSpanContext.TraceID, childSpanContext.TraceID, "trace id should match for both parent and child span")
+	suite.Equal(parentSpanContext.SpanID, childSpanContext.ParentID, "parent id should match for parent and child span")
+	suite.NotEqual(parentSpanContext.SpanID, childSpanContext.SpanID, "span id should be unique for parent and child span")
 
 	for _, span := range dispatcher.spans {
 		suite.Len(span.Tags(), 2, "1 tag should be present on the span")
@@ -89,9 +89,9 @@ func (suite *TracerTestSuite) TestTracerInject() {
 		panic(err)
 	}
 
-	suite.Equal(carrier["Trace-ID"], spanContext.(*SpanContext).TraceID())
-	suite.Equal(carrier["Span-ID"], spanContext.(*SpanContext).SpanID())
-	suite.Equal(carrier["Parent-ID"], spanContext.(*SpanContext).ParentID())
+	suite.Equal(carrier["Trace-ID"], spanContext.(*SpanContext).TraceID)
+	suite.Equal(carrier["Span-ID"], spanContext.(*SpanContext).SpanID)
+	suite.Equal(carrier["Parent-ID"], spanContext.(*SpanContext).ParentID)
 }
 
 func TestTracerTestSuite(t *testing.T) {

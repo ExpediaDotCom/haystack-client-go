@@ -18,6 +18,7 @@
 package haystack
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/opentracing/opentracing-go"
@@ -99,7 +100,7 @@ func (span *_Span) SetBaggageItem(key, value string) opentracing.Span {
 
 // BaggageItem implements BaggageItem() of opentracing.SpanContext
 func (span *_Span) BaggageItem(key string) string {
-	return span.context.baggage[key]
+	return span.context.Baggage[key]
 }
 
 // Finish implements opentracing.Span API
@@ -143,7 +144,19 @@ func (span *_Span) ServiceName() string {
 }
 
 func (span *_Span) String() string {
-	return span.context.ToString()
+	data, err := json.Marshal(map[string]interface{}{
+		"traceId":       span.context.TraceID,
+		"spanId":        span.context.SpanID,
+		"parentSpanId":  span.context.ParentID,
+		"operationName": span.OperationName(),
+		"serviceName":   span.ServiceName(),
+		"tags":          span.Tags(),
+		"logs":          span.logs,
+	})
+	if err != nil {
+		panic(err)
+	}
+	return string(data)
 }
 
 func (span *_Span) Tags() []opentracing.Tag {
