@@ -15,5 +15,10 @@ matrix:
 services:
   - docker
 
+before_script:
+  - curl -OL https://github.com/google/protobuf/releases/download/v3.3.0/protoc-3.3.0-linux-x86_64.zip
+  - sudo unzip -o protoc-3.3.0-linux-x86_64.zip -d /usr/local bin/protoc
+  - rm -f protoc-3.3.0-linux-x86_64.zip
+
 script:
   - make test validate
