@@ -11,8 +11,12 @@ idl-submodule:
 	git submodule update
 
 .PHONY: test
-test: codegen
+test: glide codegen
 	go test
+
+.PHONY: glide
+glide:
+	glide update
 
 .PHONY: validate
 validate:
