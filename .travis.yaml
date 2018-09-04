@@ -1,0 +1,19 @@
+sudo: required
+
+language: go
+go_import_path: github.com/ExpdiaDotCom/haystack-client-go
+
+dist: trusty
+
+matrix:
+  include:
+  - go: 1.9
+    env:
+    - TESTS=true
+    - COVERAGE=true
+
+services:
+  - docker
+
+script:
+  - make test validate

@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+RESP=0
+
+function checkResult {
+    if [[ $RESP -eq 1 ]]; then
+      exit 1
+    fi
+}
+
+echo --------------- validate fmt ---------------
+$DIR/validate-gofmt
+
+RESP=$?
+checkResult
+
+echo --------------- validate vet ---------------
+$DIR/validate-govet
+
+RESP=$?
+checkResult
+
+echo --------------- validate lint ---------------
+$DIR/validate-golint
+
+RESP=$?
+checkResult
+
+echo --------------- validate errcheck---------------
+$DIR/validate-errcheck
+
+RESP=$?
+checkResult

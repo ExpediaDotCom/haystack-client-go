@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+IFS=$'\n'
+    files=( $(find . -iname "*.go"  | grep -v "vendor*") )
+unset IFS
+
+errors=()
+for f in "${files[@]}"; do
+	failedVet=$(go tool vet -printf=false "$f")
+	if [ "$failedVet" ]; then
+		errors+=( "$failedVet" )
+	fi
+done
+
+if [ ${#errors[@]} -eq 0 ]; then
+	echo 'Congratulations!  All Go source files have been vetted.'
+else
+	{
+		echo "Errors from govet:"
+		for err in "${errors[@]}"; do
+			echo "$err"
+		done
+		echo
+		echo 'Please fix the above errors. You can test via "go vet" and commit the result.'
+		echo
+	} >&2
+	false
+fi
