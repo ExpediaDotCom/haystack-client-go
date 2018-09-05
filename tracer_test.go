@@ -94,6 +94,6 @@ func (suite *TracerTestSuite) TestTracerInject() {
 	suite.Equal(carrier["Parent-ID"], spanContext.(*SpanContext).ParentID)
 }
 
-func TestTracerTestSuite(t *testing.T) {
+func TestUnitTracerSuite(t *testing.T) {
 	suite.Run(t, new(TracerTestSuite))
 }

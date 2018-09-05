@@ -92,6 +92,6 @@ func assertBaggageRecords(suite *SpanTestSuite, sp *_Span, expected map[string]s
 	}
 }
 
-func TestSpanTestSuite(t *testing.T) {
+func TestUnitSpanSuite(t *testing.T) {
 	suite.Run(t, new(SpanTestSuite))
 }

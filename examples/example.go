@@ -15,17 +15,17 @@
  *
  */
 
-package haystack
+package main
 
 import (
-	"testing"
-
+	haystack "github.com/ExpediaDotCom/haystack-client-go"
 	opentracing "github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
 )
 
-func TestIntegrationWithAgent(t *testing.T) {
-	tracer, closer := NewTracer("haystack-agent-test-app", NewFileDispatcher("spans"), TracerOptionsFactory.Tag("lang", "go"), TracerOptionsFactory.Tag("appVer", "v1.1"))
+func main() {
+	/*Use haystack.NewDefaultAgentDispatcher() for non-dev environment*/
+	tracer, closer := haystack.NewTracer("haystack-agent-test-app", haystack.NewFileDispatcher("spans"), haystack.TracerOptionsFactory.Tag("appVer", "v1.1"))
 	defer func() {
 		err := closer.Close()
 		if err != nil {
@@ -34,15 +34,17 @@ func TestIntegrationWithAgent(t *testing.T) {
 	}()
 
 	span1 := tracer.StartSpan("operation1", opentracing.Tag{Key: "my-tag", Value: "something"})
-	ext.SpanKind.Set(span1, ext.SpanKindRPCServerEnum)
-	ext.Error.Set(span1, false)
-	ext.HTTPStatusCode.Set(span1, 200)
-	ext.HTTPMethod.Set(span1, "POST")
+	span1.SetTag(string(ext.SpanKind), ext.SpanKindRPCServerEnum)
+	span1.SetTag(string(ext.Error), false)
+	span1.SetTag(string(ext.HTTPStatusCode), 200)
+	span1.SetTag(string(ext.HTTPMethod), "POST")
 	span1.LogEventWithPayload("code", 1001)
 
 	span2 := tracer.StartSpan("operation2", opentracing.ChildOf(span1.Context()))
+	// a slightly different way to set the tags on a span
 	ext.Error.Set(span2, true)
 	ext.HTTPStatusCode.Set(span1, 404)
+
 	span2.Finish()
 	span1.Finish()
 }
