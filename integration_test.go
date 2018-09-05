@@ -88,7 +88,10 @@ ConsumerLoop:
 				break ConsumerLoop
 			}
 			span := &Span{}
-			span.XXX_Unmarshal(msg.Value)
+			err := span.XXX_Unmarshal(msg.Value)
+			if err != nil {
+				panic(err)
+			}
 		case <-signals:
 			break ConsumerLoop
 		}
