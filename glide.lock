@@ -1,5 +1,5 @@
-hash: e8ce83faae9ee98e4a04d58af30afdba9f413bff6084c28475bc591af790265a
-updated: 2018-09-03T22:23:30.116213083-07:00
+hash: 53f6c44d787a7ef0f05f15ac76c4366cc07df80e629c6bc3151115f5002bc2dd
+updated: 2018-09-04T23:25:50.982764398-07:00
 imports:
 - name: github.com/client9/misspell
   version: c0b55c8239520f6b5aa15a0207ca8b28027ba49e
@@ -84,7 +84,7 @@ imports:
   - unicode/bidi
   - unicode/norm
 - name: golang.org/x/tools
-  version: 7ca132754999accbaa5c1735eda29e7ce0f3bf03
+  version: 0aa4b8830f481fed77b73cf7cea2bc3129e05148
   subpackages:
   - cmd/goimports
   - go/ast/astutil
@@ -101,7 +101,7 @@ imports:
   subpackages:
   - googleapis/rpc/status
 - name: google.golang.org/grpc
-  version: ce4f3c8a89229d9db3e0c30d28a9f905435ad365
+  version: ccd64cfcfa597f31f6161da9fc101885b1eadc2f
   subpackages:
   - balancer
   - balancer/base

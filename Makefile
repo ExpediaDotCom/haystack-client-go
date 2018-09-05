@@ -12,7 +12,20 @@ idl-submodule:
 
 .PHONY: test
 test: codegen
-	go test
+	go test -run TestUnit*
+
+.PHONY: integration_test
+integration_test:
+	docker-compose -f docker-compose.yaml -p sandbox up -d
+	sleep 15
+	docker run -it \
+	    --rm \
+		--network=sandbox_default \
+		-v $(PWD):/go/src/github.com/ExpediaDotCom/haystack-client-go \
+		-w /go/src/github.com/ExpediaDotCom/haystack-client-go \
+		golang:1.9 \
+		/bin/sh -c 'go get github.com/Masterminds/glide && glide update && go test -run TestIntegration*'
+	docker-compose -f docker-compose.yaml -p sandbox stop
 
 .PHONY: glide
 glide:

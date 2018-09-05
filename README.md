@@ -8,9 +8,12 @@ This is Haystack's client library for Golang that implements [OpenTracing API 1.
 
 ## How to use the library?
 
-Check our detailed [example](example_test.go) on how to initialize tracer, start a span and send it to one of the dispatchers. This example is actually an integration test uses haystack-agent container 
+Check our detailed [example](examples/example.go) on how to initialize tracer, start a span and send it to one of the dispatchers. This example is actually an integration test uses haystack-agent container 
 
 
 ## How to build this library?
-`make glide` - If you are running for the very first time
-`make test validate`
+`git clone --recursive https://github.com/ExpediaDotCom/haystack-client-go` - clone the repo 
+
+`make glide` - if you are running for the very first time
+
+`make test validate` - go test and validate the code 
