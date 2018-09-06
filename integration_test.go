@@ -30,7 +30,7 @@ import (
 )
 
 func TestIntegrationWithAgent(t *testing.T) {
-	tracer, closer := NewTracer("haystack-agent-test-app", NewAgentDispatcher("haystack_agent", 35000, 3*time.Second), TracerOptionsFactory.Tag("appVer", "v1.1"))
+	tracer, closer := NewTracer("haystack-agent-test-app", NewAgentDispatcher("haystack_agent", 35000, 3*time.Second, 1*time.Second, 15, 1000), TracerOptionsFactory.Tag("appVer", "v1.1"))
 	defer func() {
 		err := closer.Close()
 		if err != nil {
