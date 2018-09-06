@@ -18,7 +18,6 @@
 package haystack
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"os/signal"
@@ -26,6 +25,7 @@ import (
 
 	"github.com/opentracing/opentracing-go/ext"
 	"github.com/opentracing/opentracing-go/log"
+	"golang.org/x/net/context"
 
 	"google.golang.org/grpc"
 )
