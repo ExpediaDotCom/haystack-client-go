@@ -20,12 +20,13 @@ package haystack
 import (
 	"fmt"
 	"os"
+	"os/signal"
 	"time"
 
 	"github.com/opentracing/opentracing-go/ext"
 	"github.com/opentracing/opentracing-go/log"
-
 	"golang.org/x/net/context"
+
 	"google.golang.org/grpc"
 )
 
@@ -113,28 +114,60 @@ func (d *FileDispatcher) Close() {
 
 /*AgentDispatcher agent dispatcher*/
 type AgentDispatcher struct {
-	conn    *grpc.ClientConn
-	client  SpanAgentClient
-	timeout time.Duration
-	logger  Logger
+	conn        *grpc.ClientConn
+	client      SpanAgentClient
+	timeout     time.Duration
+	logger      Logger
+	spanChannel chan *Span
 }
 
 /*NewDefaultAgentDispatcher creates a new haystack-agent dispatcher*/
 func NewDefaultAgentDispatcher() Dispatcher {
-	return NewAgentDispatcher("haystack-agent", 35000, 3*time.Second)
+	return NewAgentDispatcher("haystack-agent", 35000, 3*time.Second, 1000)
 }
 
 /*NewAgentDispatcher creates a new haystack-agent dispatcher*/
-func NewAgentDispatcher(host string, port int, timeout time.Duration) Dispatcher {
-	conn, err := grpc.Dial(fmt.Sprintf("%s:%d", host, port), grpc.WithInsecure())
+func NewAgentDispatcher(host string, port int, timeout time.Duration, maxQueueLength int) Dispatcher {
+	targetHost := fmt.Sprintf("%s:%d", host, port)
+	conn, err := grpc.Dial(targetHost, grpc.WithInsecure())
+
 	if err != nil {
 		panic(fmt.Sprintf("fail to connect to agent with error: %v", err))
 	}
 
-	return &AgentDispatcher{
-		conn:    conn,
-		client:  NewSpanAgentClient(conn),
-		timeout: timeout,
+	dispatcher := &AgentDispatcher{
+		conn:        conn,
+		client:      NewSpanAgentClient(conn),
+		timeout:     timeout,
+		spanChannel: make(chan *Span, maxQueueLength),
+	}
+
+	go startListener(dispatcher)
+	return dispatcher
+}
+
+func startListener(dispatcher *AgentDispatcher) {
+	signals := make(chan os.Signal, 1)
+	signal.Notify(signals, os.Interrupt, os.Kill)
+
+	for {
+		select {
+		case sp := <-dispatcher.spanChannel:
+			ctx, cancel := context.WithTimeout(context.Background(), dispatcher.timeout)
+			defer cancel()
+
+			result, err := dispatcher.client.Dispatch(ctx, sp)
+
+			if err != nil {
+				dispatcher.logger.Error("Fail to dispatch to haystack-agent with error %v", err)
+			} else if result.GetCode() != DispatchResult_SUCCESS {
+				dispatcher.logger.Error(fmt.Sprintf("Fail to dispatch to haystack-agent with error code: %d, message :%s", result.GetCode(), result.GetErrorMessage()))
+			} else {
+				dispatcher.logger.Debug(fmt.Sprintf("span [%v] has been successfully dispatched", sp))
+			}
+		case <-signals:
+			break
+		}
 	}
 }
 
@@ -150,10 +183,7 @@ func (d *AgentDispatcher) SetLogger(logger Logger) {
 
 /*Dispatch dispatches the span object*/
 func (d *AgentDispatcher) Dispatch(span *_Span) {
-	ctx, cancel := context.WithTimeout(context.Background(), d.timeout)
-	defer cancel()
-
-	result, err := d.client.Dispatch(ctx, &Span{
+	s := &Span{
 		TraceId:       span.context.TraceID,
 		SpanId:        span.context.SpanID,
 		ParentSpanId:  span.context.ParentID,
@@ -163,13 +193,8 @@ func (d *AgentDispatcher) Dispatch(span *_Span) {
 		Duration:      span.duration.Nanoseconds() / int64(time.Microsecond),
 		Tags:          d.tags(span),
 		Logs:          d.logs(span),
-	})
-
-	if err != nil {
-		d.logger.Error("Fail to dispatch to haystack-agent with error %v", err)
-	} else if result != nil && result.GetErrorMessage() != "" {
-		d.logger.Error("Fail to dispatch to haystack-agent with error message :" + result.GetErrorMessage())
 	}
+	d.spanChannel <- s
 }
 
 func (d *AgentDispatcher) logs(span *_Span) []*Log {

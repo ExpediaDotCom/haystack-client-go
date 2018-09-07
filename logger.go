@@ -21,6 +21,7 @@ package haystack
 type Logger interface {
 	Info(format string, v ...interface{})
 	Error(format string, v ...interface{})
+	Debug(format string, v ...interface{})
 }
 
 /*NullLogger does nothing*/
@@ -31,3 +32,6 @@ func (logger NullLogger) Error(format string, v ...interface{}) {}
 
 /*Info prints the info message*/
 func (logger NullLogger) Info(format string, v ...interface{}) {}
+
+/*Debug prints the info message*/
+func (logger NullLogger) Debug(format string, v ...interface{}) {}

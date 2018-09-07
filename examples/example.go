@@ -18,14 +18,37 @@
 package main
 
 import (
+	"fmt"
+	"time"
+
 	haystack "github.com/ExpediaDotCom/haystack-client-go"
 	opentracing "github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
 )
 
+type consoleLogger struct{}
+
+/*Error prints the error message*/
+func (logger *consoleLogger) Error(format string, v ...interface{}) {
+	fmt.Printf(format, v...)
+	fmt.Print("\n")
+}
+
+/*Info prints the info message*/
+func (logger *consoleLogger) Info(format string, v ...interface{}) {
+	fmt.Printf(format, v...)
+	fmt.Print("\n")
+}
+
+/*Debug prints the info message*/
+func (logger *consoleLogger) Debug(format string, v ...interface{}) {
+	fmt.Printf(format, v...)
+	fmt.Print("\n")
+}
+
 func main() {
 	/*Use haystack.NewDefaultAgentDispatcher() for non-dev environment*/
-	tracer, closer := haystack.NewTracer("haystack-agent-test-app", haystack.NewFileDispatcher("spans"), haystack.TracerOptionsFactory.Tag("appVer", "v1.1"))
+	tracer, closer := haystack.NewTracer("dummy-service", haystack.NewDefaultAgentDispatcher(), haystack.TracerOptionsFactory.Tag("appVer", "v1.1"), haystack.TracerOptionsFactory.Logger(&consoleLogger{}))
 	defer func() {
 		err := closer.Close()
 		if err != nil {
@@ -47,4 +70,6 @@ func main() {
 
 	span2.Finish()
 	span1.Finish()
+
+	time.Sleep(5 * time.Second)
 }
