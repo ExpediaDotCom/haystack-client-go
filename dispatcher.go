@@ -123,12 +123,17 @@ type AgentDispatcher struct {
 
 /*NewDefaultAgentDispatcher creates a new haystack-agent dispatcher*/
 func NewDefaultAgentDispatcher() Dispatcher {
-	return NewAgentDispatcher("haystack-agent", 35000, 3*time.Second, 500*time.Millisecond, 30, 1000)
+	return NewAgentDispatcher("haystack-agent", 35000, 3*time.Second, 1000)
 }
 
 /*NewAgentDispatcher creates a new haystack-agent dispatcher*/
-func NewAgentDispatcher(host string, port int, timeout time.Duration, connectRetryInterval time.Duration, connectMaxRetries int, maxQueueLength int) Dispatcher {
-	conn := connect(host, port, connectRetryInterval, connectMaxRetries)
+func NewAgentDispatcher(host string, port int, timeout time.Duration, maxQueueLength int) Dispatcher {
+	targetHost := fmt.Sprintf("%s:%d", host, port)
+	conn, err := grpc.Dial(targetHost, grpc.WithInsecure())
+
+	if err != nil {
+		panic(fmt.Sprintf("fail to connect to agent with error: %v", err))
+	}
 
 	dispatcher := &AgentDispatcher{
 		conn:        conn,
@@ -157,26 +162,11 @@ func startListener(dispatcher *AgentDispatcher) {
 				dispatcher.logger.Error("Fail to dispatch to haystack-agent with error %v", err)
 			} else if result.GetCode() != DispatchResult_SUCCESS {
 				dispatcher.logger.Error(fmt.Sprintf("Fail to dispatch to haystack-agent with error code: %d, message :%s", result.GetCode(), result.GetErrorMessage()))
+			} else {
+				dispatcher.logger.Debug(fmt.Sprintf("span [%v] has been successfully dispatched", sp))
 			}
 		case <-signals:
 			break
-		}
-	}
-}
-
-func connect(host string, port int, connectRetryInterval time.Duration, connectMaxRetries int) *grpc.ClientConn {
-	retryCount := 0
-	targetHost := fmt.Sprintf("%s:%d", host, port)
-
-	for {
-		conn, err := grpc.Dial(targetHost, grpc.WithInsecure())
-		if err == nil {
-			return conn
-		} else if retryCount < connectMaxRetries {
-			time.Sleep(connectRetryInterval)
-			retryCount = retryCount + 1
-		} else {
-			panic(fmt.Sprintf("fail to connect to agent with error: %v", err))
 		}
 	}
 }

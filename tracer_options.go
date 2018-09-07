@@ -43,3 +43,10 @@ func (t TracerOptions) Tag(key string, value interface{}) TracerOption {
 		tracer.commonTags = append(tracer.commonTags, opentracing.Tag{Key: key, Value: value})
 	}
 }
+
+/*Logger adds a common tag in every span*/
+func (t TracerOptions) Logger(logger Logger) TracerOption {
+	return func(tracer *Tracer) {
+		tracer.logger = logger
+	}
+}
