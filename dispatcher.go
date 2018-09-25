@@ -197,6 +197,11 @@ func (d *AgentDispatcher) Dispatch(span *_Span) {
 	d.spanChannel <- s
 }
 
+/*DispatchProtoSpan dispatches the proto span object*/
+func (d *AgentDispatcher) DispatchProtoSpan(s *Span) {
+	d.spanChannel <- s
+}
+
 func (d *AgentDispatcher) logs(span *_Span) []*Log {
 	var spanLogs []*Log
 	for _, lg := range span.logs {
@@ -211,7 +216,7 @@ func (d *AgentDispatcher) logs(span *_Span) []*Log {
 func (d *AgentDispatcher) logFieldsToTags(fields []log.Field) []*Tag {
 	var spanTags []*Tag
 	for _, field := range fields {
-		spanTags = append(spanTags, d.convertToTag(field.Key(), field.Value()))
+		spanTags = append(spanTags, d.ConvertToProtoTag(field.Key(), field.Value()))
 	}
 	return spanTags
 }
@@ -219,7 +224,7 @@ func (d *AgentDispatcher) logFieldsToTags(fields []log.Field) []*Tag {
 func (d *AgentDispatcher) tags(span *_Span) []*Tag {
 	var spanTags []*Tag
 	for _, tag := range span.tags {
-		spanTags = append(spanTags, d.convertToTag(tag.Key, tag.Value))
+		spanTags = append(spanTags, d.ConvertToProtoTag(tag.Key, tag.Value))
 	}
 	return spanTags
 }
@@ -232,7 +237,8 @@ func (d *AgentDispatcher) Close() {
 	}
 }
 
-func (d *AgentDispatcher) convertToTag(key string, value interface{}) *Tag {
+/*ConvertToProtoTag converts to proto tag*/
+func (d *AgentDispatcher) ConvertToProtoTag(key string, value interface{}) *Tag {
 	switch v := value.(type) {
 	case string:
 		return &Tag{

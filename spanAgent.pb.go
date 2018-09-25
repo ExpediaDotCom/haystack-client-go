@@ -3,9 +3,11 @@
 
 package haystack
 
-import proto "github.com/golang/protobuf/proto"
-import fmt "fmt"
-import math "math"
+import (
+	fmt "fmt"
+	proto "github.com/golang/protobuf/proto"
+	math "math"
+)
 
 import (
 	context "golang.org/x/net/context"
@@ -36,6 +38,7 @@ var DispatchResult_ResultCode_name = map[int32]string{
 	1: "UNKNOWN_ERROR",
 	2: "RATE_LIMIT_ERROR",
 }
+
 var DispatchResult_ResultCode_value = map[string]int32{
 	"SUCCESS":          0,
 	"UNKNOWN_ERROR":    1,
@@ -45,8 +48,9 @@ var DispatchResult_ResultCode_value = map[string]int32{
 func (x DispatchResult_ResultCode) String() string {
 	return proto.EnumName(DispatchResult_ResultCode_name, int32(x))
 }
+
 func (DispatchResult_ResultCode) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_spanAgent_9080bb8893dc7070, []int{0, 0}
+	return fileDescriptor_5a4cb81dd7dcc459, []int{0, 0}
 }
 
 type DispatchResult struct {
@@ -61,16 +65,17 @@ func (m *DispatchResult) Reset()         { *m = DispatchResult{} }
 func (m *DispatchResult) String() string { return proto.CompactTextString(m) }
 func (*DispatchResult) ProtoMessage()    {}
 func (*DispatchResult) Descriptor() ([]byte, []int) {
-	return fileDescriptor_spanAgent_9080bb8893dc7070, []int{0}
+	return fileDescriptor_5a4cb81dd7dcc459, []int{0}
 }
+
 func (m *DispatchResult) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DispatchResult.Unmarshal(m, b)
 }
 func (m *DispatchResult) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_DispatchResult.Marshal(b, m, deterministic)
 }
-func (dst *DispatchResult) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_DispatchResult.Merge(dst, src)
+func (m *DispatchResult) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DispatchResult.Merge(m, src)
 }
 func (m *DispatchResult) XXX_Size() int {
 	return xxx_messageInfo_DispatchResult.Size(m)
@@ -96,8 +101,8 @@ func (m *DispatchResult) GetErrorMessage() string {
 }
 
 func init() {
-	proto.RegisterType((*DispatchResult)(nil), "DispatchResult")
 	proto.RegisterEnum("DispatchResult_ResultCode", DispatchResult_ResultCode_name, DispatchResult_ResultCode_value)
+	proto.RegisterType((*DispatchResult)(nil), "DispatchResult")
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -172,9 +177,9 @@ var _SpanAgent_serviceDesc = grpc.ServiceDesc{
 	Metadata: "spanAgent.proto",
 }
 
-func init() { proto.RegisterFile("spanAgent.proto", fileDescriptor_spanAgent_9080bb8893dc7070) }
+func init() { proto.RegisterFile("spanAgent.proto", fileDescriptor_5a4cb81dd7dcc459) }
 
-var fileDescriptor_spanAgent_9080bb8893dc7070 = []byte{
+var fileDescriptor_5a4cb81dd7dcc459 = []byte{
 	// 254 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x5c, 0x90, 0xc1, 0x4a, 0xf3, 0x40,
 	0x10, 0xc7, 0xbf, 0x2d, 0x9f, 0xda, 0x8e, 0xb6, 0x8d, 0x8b, 0x87, 0x92, 0x53, 0x89, 0x97, 0x9e,

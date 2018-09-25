@@ -5,7 +5,7 @@ import:
   subpackages:
   - ext
   - log
-- package: github.com/satori/go.uuid
+- package: github.com/google/uuid
   version: ^1
 - package: github.com/pkg/errors
   version: ~0.8.0

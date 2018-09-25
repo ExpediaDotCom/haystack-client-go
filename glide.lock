@@ -1,5 +1,5 @@
-hash: 53f6c44d787a7ef0f05f15ac76c4366cc07df80e629c6bc3151115f5002bc2dd
-updated: 2018-09-04T23:25:50.982764398-07:00
+hash: b6963927c0443115cdeb1fcbea1352a139652ba323520f2c1bd15985bc9e38c5
+updated: 2018-09-24T19:44:10.414604876+05:30
 imports:
 - name: github.com/client9/misspell
   version: c0b55c8239520f6b5aa15a0207ca8b28027ba49e
@@ -24,7 +24,7 @@ imports:
   subpackages:
   - golint
 - name: github.com/golang/protobuf
-  version: b27b920f9e71b439b873b17bf99f56467623814a
+  version: 7716a980bceefe9a0213654823d9ea62d23b87a2
   subpackages:
   - proto
   - protoc-gen-go
@@ -39,6 +39,8 @@ imports:
   - ptypes/timestamp
 - name: github.com/golang/snappy
   version: 2e65f85255dbc3072edf28d6b5b8efc472979f5a
+- name: github.com/google/uuid
+  version: d460ce9f8df2e77fb1ba55ca87fafed96c607494
 - name: github.com/kisielk/gotool
   version: 80517062f582ea3340cd4baf70e86d539ae7d84d
   subpackages:
@@ -49,21 +51,19 @@ imports:
   - ext
   - log
 - name: github.com/pierrec/lz4
-  version: ea731401f5c95a8ba30f15787e5e0fb77c60c66b
+  version: 1f6e18d34f6790fc0afea6f13a5fe3d9ab1770af
   subpackages:
   - internal/xxh32
 - name: github.com/pkg/errors
   version: 645ef00459ed84a119197bfb8d8205042c6df63d
 - name: github.com/rcrowley/go-metrics
   version: e2704e165165ec55d062f5919b4b29494e9fa790
-- name: github.com/satori/go.uuid
-  version: f58768cc1a7a7e77a3bd49e98cdd21419399b6a3
 - name: github.com/Shopify/sarama
-  version: 647feef69a1a7e0e23cccceeb786176bc4fcf5ea
+  version: a6144ae922fd99dd0ea5046c8137acfb7fab0914
 - name: golang.org/x/lint
   version: 06c8688daad7faa9da5a0c2f163a3d14aac986ca
 - name: golang.org/x/net
-  version: 8a410e7b638dca158bf9e766925842f6651ff828
+  version: 2f5d2388922f370f4355f327fcf4cfe9f5583908
   subpackages:
   - context
   - http/httpguts
@@ -73,18 +73,18 @@ imports:
   - internal/timeseries
   - trace
 - name: golang.org/x/sys
-  version: 2b024373dcd9800f0cae693839fac6ede8d64a8c
+  version: d47a0f3392421c5624713c9a19fe781f651f8a50
   subpackages:
   - unix
 - name: golang.org/x/text
-  version: 6e3c4e7365ddcc329f090f96e4348398f6310088
+  version: 905a57155faa8230500121607930ebb9dd8e139c
   subpackages:
   - secure/bidirule
   - transform
   - unicode/bidi
   - unicode/norm
 - name: golang.org/x/tools
-  version: 0aa4b8830f481fed77b73cf7cea2bc3129e05148
+  version: 90fa682c2a6e6a37b3a1364ce2fe1d5e41af9d6d
   subpackages:
   - cmd/goimports
   - go/ast/astutil
@@ -97,11 +97,11 @@ imports:
   - imports
   - internal/fastwalk
 - name: google.golang.org/genproto
-  version: 11092d34479b07829b72e10713b159248caf5dad
+  version: c3f76f3b92d1ffa4c58a9ff842a58b8877655e0f
   subpackages:
   - googleapis/rpc/status
 - name: google.golang.org/grpc
-  version: ccd64cfcfa597f31f6161da9fc101885b1eadc2f
+  version: 8997b5fa08730b06a4b589dba174c115796fbb7b
   subpackages:
   - balancer
   - balancer/base
@@ -129,7 +129,7 @@ imports:
   - status
   - tap
 - name: honnef.co/go/tools
-  version: 88497007e8588ea5b6baee991f74a1607e809487
+  version: e3ad64cb4ed3e25a30bf42def711f9cb5b004f72
   subpackages:
   - callgraph
   - callgraph/static
