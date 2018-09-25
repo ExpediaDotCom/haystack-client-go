@@ -21,8 +21,8 @@ import (
 	"io"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/opentracing/opentracing-go"
-	"github.com/satori/go.uuid"
 )
 
 /*Tracer implements the opentracing.tracer*/
@@ -64,7 +64,11 @@ func NewTracer(
 
 	if tracer.idGenerator == nil {
 		tracer.idGenerator = func() string {
-			return uuid.NewV4().String()
+			_uuid, err := uuid.NewUUID()
+			if err != nil {
+				panic(err)
+			}
+			return _uuid.String()
 		}
 	}
 

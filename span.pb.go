@@ -3,9 +3,11 @@
 
 package haystack
 
-import proto "github.com/golang/protobuf/proto"
-import fmt "fmt"
-import math "math"
+import (
+	fmt "fmt"
+	proto "github.com/golang/protobuf/proto"
+	math "math"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -36,6 +38,7 @@ var Tag_TagType_name = map[int32]string{
 	3: "LONG",
 	4: "BINARY",
 }
+
 var Tag_TagType_value = map[string]int32{
 	"STRING": 0,
 	"DOUBLE": 1,
@@ -47,8 +50,9 @@ var Tag_TagType_value = map[string]int32{
 func (x Tag_TagType) String() string {
 	return proto.EnumName(Tag_TagType_name, int32(x))
 }
+
 func (Tag_TagType) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_span_f6f9e373bb7d8643, []int{2, 0}
+	return fileDescriptor_fc5f2b88b579999f, []int{2, 0}
 }
 
 // Span represents a unit of work performed by a service.
@@ -71,16 +75,17 @@ func (m *Span) Reset()         { *m = Span{} }
 func (m *Span) String() string { return proto.CompactTextString(m) }
 func (*Span) ProtoMessage()    {}
 func (*Span) Descriptor() ([]byte, []int) {
-	return fileDescriptor_span_f6f9e373bb7d8643, []int{0}
+	return fileDescriptor_fc5f2b88b579999f, []int{0}
 }
+
 func (m *Span) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Span.Unmarshal(m, b)
 }
 func (m *Span) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_Span.Marshal(b, m, deterministic)
 }
-func (dst *Span) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Span.Merge(dst, src)
+func (m *Span) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Span.Merge(m, src)
 }
 func (m *Span) XXX_Size() int {
 	return xxx_messageInfo_Span.Size(m)
@@ -167,16 +172,17 @@ func (m *Log) Reset()         { *m = Log{} }
 func (m *Log) String() string { return proto.CompactTextString(m) }
 func (*Log) ProtoMessage()    {}
 func (*Log) Descriptor() ([]byte, []int) {
-	return fileDescriptor_span_f6f9e373bb7d8643, []int{1}
+	return fileDescriptor_fc5f2b88b579999f, []int{1}
 }
+
 func (m *Log) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Log.Unmarshal(m, b)
 }
 func (m *Log) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_Log.Marshal(b, m, deterministic)
 }
-func (dst *Log) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Log.Merge(dst, src)
+func (m *Log) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Log.Merge(m, src)
 }
 func (m *Log) XXX_Size() int {
 	return xxx_messageInfo_Log.Size(m)
@@ -221,16 +227,17 @@ func (m *Tag) Reset()         { *m = Tag{} }
 func (m *Tag) String() string { return proto.CompactTextString(m) }
 func (*Tag) ProtoMessage()    {}
 func (*Tag) Descriptor() ([]byte, []int) {
-	return fileDescriptor_span_f6f9e373bb7d8643, []int{2}
+	return fileDescriptor_fc5f2b88b579999f, []int{2}
 }
+
 func (m *Tag) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Tag.Unmarshal(m, b)
 }
 func (m *Tag) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_Tag.Marshal(b, m, deterministic)
 }
-func (dst *Tag) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Tag.Merge(dst, src)
+func (m *Tag) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Tag.Merge(m, src)
 }
 func (m *Tag) XXX_Size() int {
 	return xxx_messageInfo_Tag.Size(m)
@@ -455,16 +462,17 @@ func (m *Batch) Reset()         { *m = Batch{} }
 func (m *Batch) String() string { return proto.CompactTextString(m) }
 func (*Batch) ProtoMessage()    {}
 func (*Batch) Descriptor() ([]byte, []int) {
-	return fileDescriptor_span_f6f9e373bb7d8643, []int{3}
+	return fileDescriptor_fc5f2b88b579999f, []int{3}
 }
+
 func (m *Batch) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Batch.Unmarshal(m, b)
 }
 func (m *Batch) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_Batch.Marshal(b, m, deterministic)
 }
-func (dst *Batch) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Batch.Merge(dst, src)
+func (m *Batch) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Batch.Merge(m, src)
 }
 func (m *Batch) XXX_Size() int {
 	return xxx_messageInfo_Batch.Size(m)
@@ -483,16 +491,16 @@ func (m *Batch) GetSpans() []*Span {
 }
 
 func init() {
+	proto.RegisterEnum("Tag_TagType", Tag_TagType_name, Tag_TagType_value)
 	proto.RegisterType((*Span)(nil), "Span")
 	proto.RegisterType((*Log)(nil), "Log")
 	proto.RegisterType((*Tag)(nil), "Tag")
 	proto.RegisterType((*Batch)(nil), "Batch")
-	proto.RegisterEnum("Tag_TagType", Tag_TagType_name, Tag_TagType_value)
 }
 
-func init() { proto.RegisterFile("span.proto", fileDescriptor_span_f6f9e373bb7d8643) }
+func init() { proto.RegisterFile("span.proto", fileDescriptor_fc5f2b88b579999f) }
 
-var fileDescriptor_span_f6f9e373bb7d8643 = []byte{
+var fileDescriptor_fc5f2b88b579999f = []byte{
 	// 456 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x54, 0x92, 0xcd, 0x8a, 0x9c, 0x40,
 	0x14, 0x85, 0xdb, 0xf6, 0xb7, 0xef, 0x74, 0x82, 0x14, 0x61, 0x28, 0x26, 0xb3, 0x10, 0x19, 0x42,
