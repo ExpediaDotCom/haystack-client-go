@@ -1,14 +1,12 @@
 hash: b6963927c0443115cdeb1fcbea1352a139652ba323520f2c1bd15985bc9e38c5
-updated: 2018-09-24T19:44:10.414604876+05:30
+updated: 2018-10-08T11:18:32.598985538+05:30
 imports:
-- name: github.com/client9/misspell
-  version: c0b55c8239520f6b5aa15a0207ca8b28027ba49e
-  subpackages:
-  - cmd/misspell
 - name: github.com/codeskyblue/go-uuid
   version: 952abbca900b023c1a80bc522ff4795db50d9d6c
+- name: github.com/DataDog/zstd
+  version: 6672cee605cfd0c1bf8331fa33740e7241515c1c
 - name: github.com/davecgh/go-spew
-  version: d8f796af33cc11cb798c1aaeb27a4ebc5099927d
+  version: 782f4967f2dc4564575ca782fe2d04090b5faca8
   subpackages:
   - spew
 - name: github.com/eapache/go-resiliency
@@ -19,20 +17,10 @@ imports:
   version: 776d5712da21bc4762676d614db1d8a64f4238b0
 - name: github.com/eapache/queue
   version: 093482f3f8ce946c05bcba64badd2c82369e084d
-- name: github.com/golang/lint
-  version: 06c8688daad7faa9da5a0c2f163a3d14aac986ca
-  subpackages:
-  - golint
 - name: github.com/golang/protobuf
-  version: 7716a980bceefe9a0213654823d9ea62d23b87a2
+  version: ddf22928ea3c56eb4292a0adbbf5001b1e8e7d0d
   subpackages:
   - proto
-  - protoc-gen-go
-  - protoc-gen-go/descriptor
-  - protoc-gen-go/generator
-  - protoc-gen-go/generator/internal/remap
-  - protoc-gen-go/grpc
-  - protoc-gen-go/plugin
   - ptypes
   - ptypes/any
   - ptypes/duration
@@ -41,17 +29,13 @@ imports:
   version: 2e65f85255dbc3072edf28d6b5b8efc472979f5a
 - name: github.com/google/uuid
   version: d460ce9f8df2e77fb1ba55ca87fafed96c607494
-- name: github.com/kisielk/gotool
-  version: 80517062f582ea3340cd4baf70e86d539ae7d84d
-  subpackages:
-  - internal/load
 - name: github.com/opentracing/opentracing-go
   version: 1949ddbfd147afd4d964a9f00b24eb291e0e7c38
   subpackages:
   - ext
   - log
 - name: github.com/pierrec/lz4
-  version: 1f6e18d34f6790fc0afea6f13a5fe3d9ab1770af
+  version: 635575b42742856941dbc767b44905bb9ba083f6
   subpackages:
   - internal/xxh32
 - name: github.com/pkg/errors
@@ -59,49 +43,34 @@ imports:
 - name: github.com/rcrowley/go-metrics
   version: e2704e165165ec55d062f5919b4b29494e9fa790
 - name: github.com/Shopify/sarama
-  version: a6144ae922fd99dd0ea5046c8137acfb7fab0914
-- name: golang.org/x/lint
-  version: 06c8688daad7faa9da5a0c2f163a3d14aac986ca
+  version: f21e149e5948e9c9b9034f1a19f430d62e00c4d3
 - name: golang.org/x/net
-  version: 2f5d2388922f370f4355f327fcf4cfe9f5583908
+  version: 1c05540f6879653db88113bc4a2b70aec4bd491f
   subpackages:
   - context
-  - http/httpguts
   - http2
   - http2/hpack
   - idna
   - internal/timeseries
+  - lex/httplex
   - trace
 - name: golang.org/x/sys
-  version: d47a0f3392421c5624713c9a19fe781f651f8a50
+  version: 95c6576299259db960f6c5b9b69ea52422860fce
   subpackages:
   - unix
 - name: golang.org/x/text
-  version: 905a57155faa8230500121607930ebb9dd8e139c
+  version: b19bf474d317b857955b12035d2c5acb57ce8b01
   subpackages:
   - secure/bidirule
   - transform
   - unicode/bidi
   - unicode/norm
-- name: golang.org/x/tools
-  version: 90fa682c2a6e6a37b3a1364ce2fe1d5e41af9d6d
-  subpackages:
-  - cmd/goimports
-  - go/ast/astutil
-  - go/buildutil
-  - go/gcexportdata
-  - go/internal/cgo
-  - go/internal/gcimporter
-  - go/loader
-  - go/types/typeutil
-  - imports
-  - internal/fastwalk
 - name: google.golang.org/genproto
-  version: c3f76f3b92d1ffa4c58a9ff842a58b8877655e0f
+  version: af9cb2a35e7f169ec875002c1829c9b315cddc04
   subpackages:
   - googleapis/rpc/status
 - name: google.golang.org/grpc
-  version: 8997b5fa08730b06a4b589dba174c115796fbb7b
+  version: 179dc63634ee7ddc0cba387340062048410ae237
   subpackages:
   - balancer
   - balancer/base
@@ -128,30 +97,17 @@ imports:
   - stats
   - status
   - tap
-- name: honnef.co/go/tools
-  version: e3ad64cb4ed3e25a30bf42def711f9cb5b004f72
-  subpackages:
-  - callgraph
-  - callgraph/static
-  - cmd/staticcheck
-  - deprecated
-  - functions
-  - internal/sharedcheck
-  - lint
-  - lint/lintdsl
-  - lint/lintutil
-  - ssa
-  - ssa/ssautil
-  - staticcheck
-  - staticcheck/vrp
-  - version
 testImports:
+- name: github.com/magiconair/properties
+  version: c2353362d570a7bfa228149c62842019201cfb71
+  subpackages:
+  - assert
 - name: github.com/pmezard/go-difflib
   version: 792786c7400a136282c1664665ae0a8db921c6c2
   subpackages:
   - difflib
 - name: github.com/stretchr/testify
-  version: f35b8ab0b5a2cef36673838d662e249dd9c94686
+  version: 2db35c88b92a1631e987089b5485a95e68bc5d3a
   subpackages:
   - assert
   - require
