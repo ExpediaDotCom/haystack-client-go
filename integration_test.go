@@ -19,17 +19,16 @@ package haystack
 
 import (
 	"log"
-	"os"
-	"os/signal"
 	"testing"
 	"time"
 
 	"github.com/Shopify/sarama"
+	"github.com/magiconair/properties/assert"
 	opentracing "github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
 )
 
-func TestIntegrationWithAgent(t *testing.T) {
+func TestIntegrationWithHaystackAgent(t *testing.T) {
 	tracer, closer := NewTracer("dummy-service", NewAgentDispatcher("haystack_agent", 35000, 3*time.Second, 1000), TracerOptionsFactory.Tag("appVer", "v1.1"))
 	defer func() {
 		err := closer.Close()
@@ -38,18 +37,21 @@ func TestIntegrationWithAgent(t *testing.T) {
 		}
 	}()
 
-	span1 := tracer.StartSpan("operation1", opentracing.Tag{Key: "my-tag", Value: "something"})
-	ext.SpanKind.Set(span1, ext.SpanKindRPCServerEnum)
-	ext.Error.Set(span1, false)
-	ext.HTTPStatusCode.Set(span1, 200)
-	ext.HTTPMethod.Set(span1, "POST")
-	span1.LogEventWithPayload("code", 1001)
+	serverSpan := tracer.StartSpan("serverOp", opentracing.Tag{Key: "my-tag", Value: "something"})
+	ext.SpanKind.Set(serverSpan, ext.SpanKindRPCServerEnum)
+	ext.Error.Set(serverSpan, false)
+	ext.HTTPStatusCode.Set(serverSpan, 200)
+	ext.HTTPMethod.Set(serverSpan, "POST")
+	serverSpan.LogEventWithPayload("code", 1001)
 
-	span2 := tracer.StartSpan("operation2", opentracing.ChildOf(span1.Context()))
-	ext.Error.Set(span2, true)
-	ext.HTTPStatusCode.Set(span1, 404)
-	span2.Finish()
-	span1.Finish()
+	clientSpan := tracer.StartSpan("clientOp", opentracing.ChildOf(serverSpan.Context()))
+	ext.SpanKind.Set(clientSpan, ext.SpanKindRPCClientEnum)
+	ext.Error.Set(clientSpan, true)
+	ext.HTTPStatusCode.Set(clientSpan, 404)
+
+	// finish the two spans
+	clientSpan.Finish()
+	serverSpan.Finish()
 
 	consumer, err := sarama.NewConsumer([]string{"kafkasvc:9092"}, nil)
 
@@ -74,26 +76,52 @@ func TestIntegrationWithAgent(t *testing.T) {
 		}
 	}()
 
-	signals := make(chan os.Signal, 1)
-	signal.Notify(signals, os.Interrupt)
+	clientSpanReceived := 0
+	serverSpanReceived := 0
 
-	consumed := 0
 ConsumerLoop:
 	for {
 		select {
 		case msg := <-partitionConsumer.Messages():
 			log.Printf("Consumed message offset %d\n", msg.Offset)
-			consumed++
-			if consumed == 2 {
-				break ConsumerLoop
-			}
 			span := &Span{}
-			err := span.XXX_Unmarshal(msg.Value)
-			if err != nil {
+			unmarshalErr := span.XXX_Unmarshal(msg.Value)
+			if unmarshalErr != nil {
 				panic(err)
 			}
-		case <-signals:
-			break ConsumerLoop
+
+			verifyCommonAttr(t, span)
+
+			for _, tag := range span.GetTags() {
+				if tag.GetKey() == "span.kind" {
+					switch tag.GetVStr() {
+					case "client":
+						clientSpanReceived = clientSpanReceived + 1
+						assert.Equal(t, span.GetOperationName(), "clientOp")
+					case "server":
+						serverSpanReceived = serverSpanReceived + 1
+						assert.Equal(t, span.GetOperationName(), "serverOp")
+					}
+				}
+			}
+
+			// expect only two spans
+			if msg.Offset == 1 {
+				assert.Equal(t, clientSpanReceived, 1)
+				assert.Equal(t, serverSpanReceived, 1)
+				break ConsumerLoop
+			}
 		}
 	}
+}
+
+func verifyCommonAttr(t *testing.T, span *Span) {
+	assert.Equal(t, span.GetServiceName(), "dummy-service")
+	appVersionTag := ""
+	for _, tag := range span.GetTags() {
+		if tag.GetKey() == "appVer" {
+			appVersionTag = tag.GetVStr()
+		}
+	}
+	assert.Equal(t, appVersionTag, "v1.1")
 }

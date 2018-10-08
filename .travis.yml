@@ -8,12 +8,14 @@ dist: trusty
 matrix:
   include:
   - go: 1.9
-    env:
-    - TESTS=true
-    - COVERAGE=true
 
 services:
   - docker
+
+addons:
+  hosts:
+    - kafkasvc
+    - haystack_agent
 
 before_script:
   - curl -OL https://github.com/google/protobuf/releases/download/v3.3.0/protoc-3.3.0-linux-x86_64.zip
@@ -22,4 +24,8 @@ before_script:
   - curl https://glide.sh/get | sh
 
 script:
-  - make glide test validate
+  - make glide test validate integration_test
+
+notifications:
+  email:
+    - haystack-notifications@expedia.com
