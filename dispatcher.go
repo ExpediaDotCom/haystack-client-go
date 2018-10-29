@@ -25,9 +25,6 @@ import (
 
 	"github.com/opentracing/opentracing-go/ext"
 	"github.com/opentracing/opentracing-go/log"
-	"golang.org/x/net/context"
-
-	"google.golang.org/grpc"
 )
 
 /*Dispatcher dispatches the span object*/
@@ -112,32 +109,18 @@ func (d *FileDispatcher) Close() {
 	}
 }
 
-/*AgentDispatcher agent dispatcher*/
-type AgentDispatcher struct {
-	conn        *grpc.ClientConn
-	client      SpanAgentClient
+/*RemoteDispatcher dispatcher, client can be grpc or http*/
+type RemoteDispatcher struct {
+	client      RemoteClient
 	timeout     time.Duration
 	logger      Logger
 	spanChannel chan *Span
 }
 
-/*NewDefaultAgentDispatcher creates a new haystack-agent dispatcher*/
-func NewDefaultAgentDispatcher() Dispatcher {
-	return NewAgentDispatcher("haystack-agent", 35000, 3*time.Second, 1000)
-}
-
-/*NewAgentDispatcher creates a new haystack-agent dispatcher*/
-func NewAgentDispatcher(host string, port int, timeout time.Duration, maxQueueLength int) Dispatcher {
-	targetHost := fmt.Sprintf("%s:%d", host, port)
-	conn, err := grpc.Dial(targetHost, grpc.WithInsecure())
-
-	if err != nil {
-		panic(fmt.Sprintf("fail to connect to agent with error: %v", err))
-	}
-
-	dispatcher := &AgentDispatcher{
-		conn:        conn,
-		client:      NewSpanAgentClient(conn),
+/*NewHTTPDispatcher creates a new haystack-agent dispatcher*/
+func NewHTTPDispatcher(url string, timeout time.Duration, headers map[string]string, maxQueueLength int) Dispatcher {
+	dispatcher := &RemoteDispatcher{
+		client:      NewHTTPClient(url, headers, timeout),
 		timeout:     timeout,
 		spanChannel: make(chan *Span, maxQueueLength),
 	}
@@ -146,25 +129,36 @@ func NewAgentDispatcher(host string, port int, timeout time.Duration, maxQueueLe
 	return dispatcher
 }
 
-func startListener(dispatcher *AgentDispatcher) {
+/*NewDefaultHTTPDispatcher creates a new http dispatcher*/
+func NewDefaultHTTPDispatcher() Dispatcher {
+	return NewHTTPDispatcher("http://haystack-collector/span", 3*time.Second, make(map[string](string)), 1000)
+}
+
+/*NewAgentDispatcher creates a new haystack-agent dispatcher*/
+func NewAgentDispatcher(host string, port int, timeout time.Duration, maxQueueLength int) Dispatcher {
+	dispatcher := &RemoteDispatcher{
+		client:      NewGrpcClient(host, port, timeout),
+		timeout:     timeout,
+		spanChannel: make(chan *Span, maxQueueLength),
+	}
+
+	go startListener(dispatcher)
+	return dispatcher
+}
+
+/*NewDefaultAgentDispatcher creates a new haystack-agent dispatcher*/
+func NewDefaultAgentDispatcher() Dispatcher {
+	return NewAgentDispatcher("haystack-agent", 35000, 3*time.Second, 1000)
+}
+
+func startListener(dispatcher *RemoteDispatcher) {
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, os.Interrupt, os.Kill)
 
 	for {
 		select {
 		case sp := <-dispatcher.spanChannel:
-			ctx, cancel := context.WithTimeout(context.Background(), dispatcher.timeout)
-			defer cancel()
-
-			result, err := dispatcher.client.Dispatch(ctx, sp)
-
-			if err != nil {
-				dispatcher.logger.Error("Fail to dispatch to haystack-agent with error %v", err)
-			} else if result.GetCode() != DispatchResult_SUCCESS {
-				dispatcher.logger.Error(fmt.Sprintf("Fail to dispatch to haystack-agent with error code: %d, message :%s", result.GetCode(), result.GetErrorMessage()))
-			} else {
-				dispatcher.logger.Debug(fmt.Sprintf("span [%v] has been successfully dispatched", sp))
-			}
+			dispatcher.client.Send(sp)
 		case <-signals:
 			break
 		}
@@ -172,17 +166,18 @@ func startListener(dispatcher *AgentDispatcher) {
 }
 
 /*Name gives the Dispatcher name*/
-func (d *AgentDispatcher) Name() string {
-	return "AgentDispatcher"
+func (d *RemoteDispatcher) Name() string {
+	return "RemoteDispatcher"
 }
 
 /*SetLogger sets the logger to use*/
-func (d *AgentDispatcher) SetLogger(logger Logger) {
+func (d *RemoteDispatcher) SetLogger(logger Logger) {
 	d.logger = logger
+	d.client.SetLogger(logger)
 }
 
 /*Dispatch dispatches the span object*/
-func (d *AgentDispatcher) Dispatch(span *_Span) {
+func (d *RemoteDispatcher) Dispatch(span *_Span) {
 	s := &Span{
 		TraceId:       span.context.TraceID,
 		SpanId:        span.context.SpanID,
@@ -198,11 +193,11 @@ func (d *AgentDispatcher) Dispatch(span *_Span) {
 }
 
 /*DispatchProtoSpan dispatches the proto span object*/
-func (d *AgentDispatcher) DispatchProtoSpan(s *Span) {
+func (d *RemoteDispatcher) DispatchProtoSpan(s *Span) {
 	d.spanChannel <- s
 }
 
-func (d *AgentDispatcher) logs(span *_Span) []*Log {
+func (d *RemoteDispatcher) logs(span *_Span) []*Log {
 	var spanLogs []*Log
 	for _, lg := range span.logs {
 		spanLogs = append(spanLogs, &Log{
@@ -213,7 +208,7 @@ func (d *AgentDispatcher) logs(span *_Span) []*Log {
 	return spanLogs
 }
 
-func (d *AgentDispatcher) logFieldsToTags(fields []log.Field) []*Tag {
+func (d *RemoteDispatcher) logFieldsToTags(fields []log.Field) []*Tag {
 	var spanTags []*Tag
 	for _, field := range fields {
 		spanTags = append(spanTags, d.ConvertToProtoTag(field.Key(), field.Value()))
@@ -221,7 +216,7 @@ func (d *AgentDispatcher) logFieldsToTags(fields []log.Field) []*Tag {
 	return spanTags
 }
 
-func (d *AgentDispatcher) tags(span *_Span) []*Tag {
+func (d *RemoteDispatcher) tags(span *_Span) []*Tag {
 	var spanTags []*Tag
 	for _, tag := range span.tags {
 		spanTags = append(spanTags, d.ConvertToProtoTag(tag.Key, tag.Value))
@@ -230,15 +225,15 @@ func (d *AgentDispatcher) tags(span *_Span) []*Tag {
 }
 
 /*Close down the file dispatcher*/
-func (d *AgentDispatcher) Close() {
-	err := d.conn.Close()
+func (d *RemoteDispatcher) Close() {
+	err := d.client.Close()
 	if err != nil {
 		d.logger.Error("Fail to close the haystack-agent dispatcher %v", err)
 	}
 }
 
 /*ConvertToProtoTag converts to proto tag*/
-func (d *AgentDispatcher) ConvertToProtoTag(key string, value interface{}) *Tag {
+func (d *RemoteDispatcher) ConvertToProtoTag(key string, value interface{}) *Tag {
 	switch v := value.(type) {
 	case string:
 		return &Tag{
