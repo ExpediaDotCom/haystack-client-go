@@ -24,6 +24,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/golang/protobuf/proto"
 	context "golang.org/x/net/context"
 	grpc "google.golang.org/grpc"
 )
@@ -108,11 +109,10 @@ func NewHTTPClient(url string, headers map[string]string, timeout time.Duration)
 
 /*Send a proto span to http server*/
 func (c *HTTPClient) Send(span *Span) {
-	dataBytes := make([]byte, 0)
-	serializedBytes, marshalErr := span.XXX_Marshal(dataBytes, true)
+	serializedBytes, marshalErr := proto.Marshal(span)
 
 	if marshalErr != nil {
-		c.logger.Error("Fail to serialize the span to proto bytes wieh error %v", marshalErr)
+		c.logger.Error("Fail to serialize the span to proto bytes, error=%v", marshalErr)
 		return
 	}
 
@@ -131,7 +131,7 @@ func (c *HTTPClient) Send(span *Span) {
 	resp, err := c.client.Do(postRequest)
 
 	if err != nil {
-		c.logger.Error("Fail to dispatch to haystack http server with error %v", err)
+		c.logger.Error("Fail to dispatch to haystack http server, error=%v", err)
 	}
 
 	defer func() {
@@ -143,7 +143,7 @@ func (c *HTTPClient) Send(span *Span) {
 
 	respBytes, respErr := ioutil.ReadAll(resp.Body)
 	if respErr != nil {
-		c.logger.Error("Fail to read the http response from haystack server, error %v", respErr)
+		c.logger.Error("Fail to read the http response from haystack server, error=%v", respErr)
 		return
 	}
 
