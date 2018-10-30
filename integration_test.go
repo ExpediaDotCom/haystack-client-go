@@ -19,7 +19,6 @@ package haystack
 
 import (
 	"fmt"
-	"log"
 	"strconv"
 	"testing"
 	"time"
@@ -30,15 +29,22 @@ import (
 	"github.com/opentracing/opentracing-go/ext"
 )
 
-func TestIntegrationWithHaystackAgent(t *testing.T) {
-	tracer, closer := NewTracer("dummy-service", NewAgentDispatcher("haystack_agent", 35000, 3*time.Second, 1000), TracerOptionsFactory.Tag("appVer", "v1.1"))
-	defer func() {
-		err := closer.Close()
-		if err != nil {
-			panic(err)
-		}
-	}()
+func createKafkaConsumer() sarama.PartitionConsumer {
+	consumer, err := sarama.NewConsumer([]string{"kafkasvc:9092"}, nil)
 
+	if err != nil {
+		panic(err)
+	}
+
+	partitionConsumer, err := consumer.ConsumePartition("proto-spans", 0, sarama.OffsetOldest)
+	if err != nil {
+		panic(err)
+	}
+
+	return partitionConsumer
+}
+
+func executeTest(tracer opentracing.Tracer, partitionConsumer sarama.PartitionConsumer, t *testing.T) {
 	serverTime := time.Now()
 	serverSpan := tracer.StartSpan("serverOp", opentracing.Tag{Key: "server-tag-key", Value: "something"}, opentracing.StartTime(serverTime))
 	ext.SpanKind.Set(serverSpan, ext.SpanKindRPCServerEnum)
@@ -57,29 +63,6 @@ func TestIntegrationWithHaystackAgent(t *testing.T) {
 	clientSpan.Finish()
 	serverSpan.Finish()
 
-	consumer, err := sarama.NewConsumer([]string{"kafkasvc:9092"}, nil)
-
-	if err != nil {
-		panic(err)
-	}
-
-	defer func() {
-		if err := consumer.Close(); err != nil {
-			log.Fatalln(err)
-		}
-	}()
-
-	partitionConsumer, err := consumer.ConsumePartition("proto-spans", 0, sarama.OffsetOldest)
-	if err != nil {
-		panic(err)
-	}
-
-	defer func() {
-		if err := partitionConsumer.Close(); err != nil {
-			log.Fatalln(err)
-		}
-	}()
-
 	clientSpanReceived := 0
 	serverSpanReceived := 0
 	clientParentSpanID := ""
@@ -95,7 +78,7 @@ ConsumerLoop:
 			span := &Span{}
 			unmarshalErr := span.XXX_Unmarshal(msg.Value)
 			if unmarshalErr != nil {
-				panic(err)
+				panic(unmarshalErr)
 			}
 
 			verifyCommonAttr(t, span)
@@ -134,6 +117,29 @@ ConsumerLoop:
 			}
 		}
 	}
+}
+
+func TestIntegration(t *testing.T) {
+	consumer := createKafkaConsumer()
+	agentTracer, agentCloser := NewTracer("dummy-service", NewAgentDispatcher("haystack_agent", 35000, 3*time.Second, 1000), TracerOptionsFactory.Tag("appVer", "v1.1"))
+	defer func() {
+		err := agentCloser.Close()
+		if err != nil {
+			panic(err)
+		}
+	}()
+
+	executeTest(agentTracer, consumer, t)
+
+	httpDispatcher := NewHTTPDispatcher("http://haystack_collector:8080/span", 3*time.Second, make(map[string]string), 1000)
+	httpTracer, httpCloser := NewTracer("dummy-service", httpDispatcher, TracerOptionsFactory.Tag("appVer", "v1.1"))
+	defer func() {
+		err := httpCloser.Close()
+		if err != nil {
+			panic(err)
+		}
+	}()
+	executeTest(httpTracer, consumer, t)
 }
 
 func verifyCommonAttr(t *testing.T, span *Span) {

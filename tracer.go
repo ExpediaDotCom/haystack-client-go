@@ -145,13 +145,13 @@ func (tracer *Tracer) createSpanContext(parent *SpanContext, isServerSpan bool) 
 	}
 
 	// This is a check to see if the tracer is configured to support single
-    // single span type (Zipkin style shared span id) or
-    // dual span type (client and server having their own span ids ).
-    // a. If tracer is not of dualSpanType and if it is a server span then we
-    // just return the parent context with the same shared span ids
-    // b. If tracer is not of dualSpanType and if the parent context is an extracted one from the wire
-    // then we assume this is the first span in the server and so just return the parent context
-    // with the same shared span ids
+	// single span type (Zipkin style shared span id) or
+	// dual span type (client and server having their own span ids ).
+	// a. If tracer is not of dualSpanType and if it is a server span then we
+	// just return the parent context with the same shared span ids
+	// b. If tracer is not of dualSpanType and if the parent context is an extracted one from the wire
+	// then we assume this is the first span in the server and so just return the parent context
+	// with the same shared span ids
 	if !tracer.useDualSpanMode && (isServerSpan || parent.IsExtractedContext) {
 		return &SpanContext{
 			TraceID:            parent.TraceID,
@@ -160,14 +160,13 @@ func (tracer *Tracer) createSpanContext(parent *SpanContext, isServerSpan bool) 
 			Baggage:            parent.Baggage,
 			IsExtractedContext: false,
 		}
-	} else {
-		return &SpanContext{
-			TraceID:            parent.TraceID,
-			SpanID:             tracer.idGenerator(),
-			ParentID:           parent.SpanID,
-			Baggage:            parent.Baggage,
-			IsExtractedContext: false,
-		}
+	}
+	return &SpanContext{
+		TraceID:            parent.TraceID,
+		SpanID:             tracer.idGenerator(),
+		ParentID:           parent.SpanID,
+		Baggage:            parent.Baggage,
+		IsExtractedContext: false,
 	}
 }
 

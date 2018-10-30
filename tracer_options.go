@@ -51,6 +51,7 @@ func (t TracerOptions) Logger(logger Logger) TracerOption {
 	}
 }
 
+/*UseDualSpanMode sets the tracer in dual span mode*/
 func (t TracerOptions) UseDualSpanMode() TracerOption {
 	return func(tracer *Tracer) {
 		tracer.useDualSpanMode = true
