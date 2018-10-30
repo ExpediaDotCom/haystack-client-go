@@ -137,10 +137,11 @@ func (p *TextMapPropagator) Extract(carrier interface{}) (*SpanContext, error) {
 		}
 	}
 	return &SpanContext{
-		TraceID:  carrierMap[p.opts.TraceIDKEY()],
-		SpanID:   carrierMap[p.opts.SpanIDKEY()],
-		ParentID: carrierMap[p.opts.ParentSpanIDKEY()],
-		Baggage:  baggage,
+		TraceID:            carrierMap[p.opts.TraceIDKEY()],
+		SpanID:             carrierMap[p.opts.SpanIDKEY()],
+		ParentID:           carrierMap[p.opts.ParentSpanIDKEY()],
+		Baggage:            baggage,
+		IsExtractedContext: true,
 	}, nil
 }
 

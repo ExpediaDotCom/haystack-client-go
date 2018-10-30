@@ -44,9 +44,16 @@ func (t TracerOptions) Tag(key string, value interface{}) TracerOption {
 	}
 }
 
-/*Logger adds a common tag in every span*/
+/*Logger set the logger type*/
 func (t TracerOptions) Logger(logger Logger) TracerOption {
 	return func(tracer *Tracer) {
 		tracer.logger = logger
+	}
+}
+
+/*UseDualSpanMode sets the tracer in dual span mode*/
+func (t TracerOptions) UseDualSpanMode() TracerOption {
+	return func(tracer *Tracer) {
+		tracer.useDualSpanMode = true
 	}
 }

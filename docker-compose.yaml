@@ -14,6 +14,15 @@ services:
     - /bin/sh
     - -c
     - 'sleep 10 && java -jar /app/bin/haystack-agent.jar --config-provider file --file-path /app/bin/dev.conf'
+   haystack_collector:
+    image: expediadotcom/haystack-http-span-collector:1.1
+    depends_on:
+    - zookeeper
+    - kafkasvc
+    environment:
+      HAYSTACK_PROP_KAFKA_PRODUCER_PROPS_BOOTSTRAP_SERVERS: "kafkasvc:9092"
+    ports:
+    - "8080:8080"
    zookeeper:
     image: wurstmeister/zookeeper
     ports:

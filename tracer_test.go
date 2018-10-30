@@ -27,16 +27,22 @@ import (
 
 type TracerTestSuite struct {
 	suite.Suite
-	tracer     opentracing.Tracer
-	closer     io.Closer
+	tracer               opentracing.Tracer
+	closer               io.Closer
+	dualSpanModeTracer   opentracing.Tracer
+	dualSpanTracerCloser io.Closer
+
 	dispatcher Dispatcher
 }
 
 func (suite *TracerTestSuite) SetupTest() {
 	suite.dispatcher = NewInMemoryDispatcher()
 	tracer, closer := NewTracer("my-service", suite.dispatcher, TracerOptionsFactory.Tag("t1", "v1"))
+	dualSpanModeTracer, dualSpanTracerCloser := NewTracer("my-service", suite.dispatcher, TracerOptionsFactory.Tag("t1", "v1"), TracerOptionsFactory.UseDualSpanMode())
 	suite.tracer = tracer
 	suite.closer = closer
+	suite.dualSpanModeTracer = dualSpanModeTracer
+	suite.dualSpanTracerCloser = dualSpanTracerCloser
 }
 
 func (suite *TracerTestSuite) TearDownTest() {
@@ -46,8 +52,14 @@ func (suite *TracerTestSuite) TearDownTest() {
 			panic(err)
 		}
 	}
-}
 
+	if suite.dualSpanTracerCloser != nil {
+		err := suite.dualSpanTracerCloser.Close()
+		if err != nil {
+			panic(err)
+		}
+	}
+}
 func (suite *TracerTestSuite) TestTracerProperties() {
 	tag := opentracing.Tag{Key: "user_agent", Value: "ua"}
 	span1 := suite.tracer.StartSpan("op1", tag)
@@ -75,6 +87,116 @@ func (suite *TracerTestSuite) TestTracerProperties() {
 	}
 }
 
+func (suite *TracerTestSuite) TestTracerWithDualSpanMode_1() {
+	serverTag := opentracing.Tag{Key: "span.kind", Value: "server"}
+	clientTag := opentracing.Tag{Key: "span.kind", Value: "client"}
+	carrier := map[string]string{
+		"Trace-ID":  "T1",
+		"Span-ID":   "S1",
+		"Parent-ID": "P1",
+	}
+	upstreamSpanContext, _ := suite.dualSpanModeTracer.Extract(opentracing.HTTPHeaders, carrier)
+	serverSpan := suite.dualSpanModeTracer.StartSpan("op1", serverTag, opentracing.ChildOf(upstreamSpanContext))
+	clientSpan := suite.dualSpanModeTracer.StartSpan("op2", clientTag, opentracing.ChildOf(serverSpan.Context()))
+
+	clientSpan.Finish()
+	serverSpan.Finish()
+
+	dispatcher := suite.dispatcher.(*InMemoryDispatcher)
+	suite.Len(dispatcher.spans, 2, "2 spans should be dispatched")
+	receivedClientSpan := dispatcher.spans[0]
+	receivedClientSpanCtx := receivedClientSpan.Context().(*SpanContext)
+
+	receivedServerSpan := dispatcher.spans[1]
+	receivedServerSpanCtx := receivedServerSpan.Context().(*SpanContext)
+	suite.Equal(receivedServerSpanCtx.TraceID, "T1", "Trace Ids should match")
+	suite.NotEqual(receivedServerSpanCtx.SpanID, "S1", "SpanId should be newly created")
+	suite.NotEqual(receivedServerSpanCtx.SpanID, "P1", "SpanId should be newly created")
+	suite.NotEqual(receivedServerSpanCtx.SpanID, "T1", "SpanId should be newly created")
+	suite.Equal(receivedServerSpanCtx.ParentID, "S1", "Parent Ids should match")
+	suite.Equal(receivedServerSpan.Tags()[1], serverTag, "span.kind tag should be present and equal to server")
+
+	suite.Equal(receivedClientSpanCtx.TraceID, "T1", "Parent Ids should match")
+	suite.NotEqual(receivedClientSpanCtx.SpanID, receivedServerSpanCtx.SpanID, "SpanId should be newly created")
+	suite.NotEqual(receivedClientSpanCtx.SpanID, receivedServerSpanCtx.SpanID, "SpanId should be newly created")
+	suite.NotEqual(receivedClientSpanCtx.SpanID, receivedServerSpanCtx.SpanID, "SpanId should be newly created")
+	suite.Equal(receivedClientSpanCtx.ParentID, receivedServerSpanCtx.SpanID, "Parent Ids should match")
+	suite.Equal(receivedClientSpan.Tags()[1], clientTag, "span.kind tag should be present and equal to client")
+}
+
+func (suite *TracerTestSuite) TestTracerWithSingleSpanMode_1() {
+	serverTag := opentracing.Tag{Key: "span.kind", Value: "server"}
+	clientTag := opentracing.Tag{Key: "span.kind", Value: "client"}
+	carrier := map[string]string{
+		"Trace-ID":  "T1",
+		"Span-ID":   "S1",
+		"Parent-ID": "P1",
+	}
+	upstreamSpanContext, _ := suite.tracer.Extract(opentracing.HTTPHeaders, carrier)
+	serverSpan := suite.tracer.StartSpan("op1", serverTag, opentracing.ChildOf(upstreamSpanContext))
+	clientSpan := suite.tracer.StartSpan("op2", clientTag, opentracing.ChildOf(serverSpan.Context()))
+
+	clientSpan.Finish()
+	serverSpan.Finish()
+
+	dispatcher := suite.dispatcher.(*InMemoryDispatcher)
+	suite.Len(dispatcher.spans, 2, "2 spans should be dispatched")
+	receivedClientSpan := dispatcher.spans[0]
+	receivedClientSpanCtx := receivedClientSpan.Context().(*SpanContext)
+
+	receivedServerSpan := dispatcher.spans[1]
+	receivedServerSpanCtx := receivedServerSpan.Context().(*SpanContext)
+	suite.Equal(receivedServerSpanCtx.TraceID, "T1", "Trace Ids should match")
+	suite.Equal(receivedServerSpanCtx.SpanID, "S1", "Span Ids should match")
+	suite.Equal(receivedServerSpanCtx.ParentID, "P1", "Parent Ids should match")
+	suite.Equal(receivedServerSpan.Tags()[1], serverTag, "span.kind tag should be present and equal to server")
+
+	suite.Equal(receivedClientSpanCtx.TraceID, "T1", "Parent Ids should match")
+	suite.NotEqual(receivedClientSpanCtx.SpanID, "S1", "SpanId should be newly created")
+	suite.NotEqual(receivedClientSpanCtx.SpanID, "P1", "SpanId should be newly created")
+	suite.NotEqual(receivedClientSpanCtx.SpanID, "T1", "SpanId should be newly created")
+	suite.Equal(receivedClientSpanCtx.ParentID, "S1", "Parent Ids should match")
+	suite.Equal(receivedClientSpan.Tags()[1], clientTag, "span.kind tag should be present and equal to client")
+}
+
+func (suite *TracerTestSuite) TestTracerWithSingleSpanMode_2() {
+	serverTag := opentracing.Tag{Key: "error", Value: true}
+	clientTag := opentracing.Tag{Key: "error", Value: false}
+	carrier := map[string]string{
+		"Trace-ID":  "T1",
+		"Span-ID":   "S1",
+		"Parent-ID": "P1",
+	}
+	upstreamSpanContext, _ := suite.tracer.Extract(opentracing.HTTPHeaders, carrier)
+	serverSpan := suite.tracer.StartSpan("op1", serverTag, opentracing.ChildOf(upstreamSpanContext))
+	clientSpan := suite.tracer.StartSpan("op2", clientTag, opentracing.ChildOf(serverSpan.Context()))
+
+	clientSpan.Finish()
+	serverSpan.Finish()
+
+	dispatcher := suite.dispatcher.(*InMemoryDispatcher)
+	suite.Len(dispatcher.spans, 2, "2 spans should be dispatched")
+	receivedClientSpan := dispatcher.spans[0]
+	receivedClientSpanCtx := receivedClientSpan.Context().(*SpanContext)
+
+	receivedServerSpan := dispatcher.spans[1]
+	receivedServerSpanCtx := receivedServerSpan.Context().(*SpanContext)
+
+	suite.Equal(receivedServerSpanCtx.TraceID, "T1", "Trace Ids should match")
+	suite.Equal(receivedServerSpanCtx.SpanID, "S1", "Span Ids should match")
+	suite.Equal(receivedServerSpanCtx.ParentID, "P1", "Parent Ids should match")
+	suite.Equal(receivedServerSpan.Tags()[1].Key, "error", "error tag should be present")
+	suite.Equal(receivedServerSpan.Tags()[1].Value, true, "error tag should be true")
+
+	suite.Equal(receivedClientSpanCtx.TraceID, "T1", "Parent Ids should match")
+	suite.NotEqual(receivedClientSpanCtx.SpanID, "S1", "SpanId should be newly created")
+	suite.NotEqual(receivedClientSpanCtx.SpanID, "P1", "SpanId should be newly created")
+	suite.NotEqual(receivedClientSpanCtx.SpanID, "T1", "SpanId should be newly created")
+	suite.Equal(receivedClientSpanCtx.ParentID, "S1", "Parent Ids should match")
+	suite.Equal(receivedClientSpan.Tags()[1].Key, "error", "error tag should be present")
+	suite.Equal(receivedClientSpan.Tags()[1].Value, false, "error tag should be false")
+}
+
 func (suite *TracerTestSuite) TestTracerInject() {
 	carrier := make(map[string]string)
 	span1 := suite.tracer.StartSpan("op1")
@@ -84,14 +206,15 @@ func (suite *TracerTestSuite) TestTracerInject() {
 	}
 	suite.Len(carrier, 3, "trace-id, span-id, parent-id should be injected in the http headers")
 
-	spanContext, err := suite.tracer.Extract(opentracing.HTTPHeaders, carrier)
+	ctx, err := suite.tracer.Extract(opentracing.HTTPHeaders, carrier)
 	if err != nil {
 		panic(err)
 	}
 
-	suite.Equal(carrier["Trace-ID"], spanContext.(*SpanContext).TraceID)
-	suite.Equal(carrier["Span-ID"], spanContext.(*SpanContext).SpanID)
-	suite.Equal(carrier["Parent-ID"], spanContext.(*SpanContext).ParentID)
+	suite.Equal(carrier["Trace-ID"], ctx.(*SpanContext).TraceID)
+	suite.Equal(carrier["Span-ID"], ctx.(*SpanContext).SpanID)
+	suite.Equal(carrier["Parent-ID"], ctx.(*SpanContext).ParentID)
+	suite.Equal(true, ctx.(*SpanContext).IsExtractedContext)
 }
 
 func TestUnitTracerSuite(t *testing.T) {
