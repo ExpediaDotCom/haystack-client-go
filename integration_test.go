@@ -152,7 +152,7 @@ func TestIntegration(t *testing.T) {
 	executeTest(agentTracer, consumer, t)
 
 	httpDispatcher := NewHTTPDispatcher("http://haystack_collector:8080/span", 3*time.Second, make(map[string]string), 1000)
-	httpTracer, httpCloser := NewTracer("dummy-service", httpDispatcher, TracerOptionsFactory.Tag("appVer", "v1.1"), TracerOptionsFactory.Logger(&consoleLogger{}))
+	_, httpCloser := NewTracer("dummy-service", httpDispatcher, TracerOptionsFactory.Tag("appVer", "v1.1"), TracerOptionsFactory.Logger(&consoleLogger{}))
 	defer func() {
 		err := httpCloser.Close()
 		if err != nil {
