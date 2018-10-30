@@ -35,6 +35,9 @@ type SpanContext struct {
 
 	//Context baggage. The is a snapshot in time.
 	Baggage map[string]string
+
+	// set to true if extracted using a extractor in tracer
+	IsExtractedContext bool
 }
 
 // IsValid indicates whether this context actually represents a valid trace.

@@ -23,17 +23,19 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/opentracing/opentracing-go"
+	"github.com/opentracing/opentracing-go/ext"
 )
 
 /*Tracer implements the opentracing.tracer*/
 type Tracer struct {
-	serviceName string
-	logger      Logger
-	dispatcher  Dispatcher
-	commonTags  []opentracing.Tag
-	timeNow     func() time.Time
-	idGenerator func() string
-	propagtors  map[interface{}]Propagator
+	serviceName     string
+	logger          Logger
+	dispatcher      Dispatcher
+	commonTags      []opentracing.Tag
+	timeNow         func() time.Time
+	idGenerator     func() string
+	propagtors      map[interface{}]Propagator
+	useDualSpanMode bool
 }
 
 /*NewTracer creates a new tracer*/
@@ -43,13 +45,13 @@ func NewTracer(
 	options ...TracerOption,
 ) (opentracing.Tracer, io.Closer) {
 	tracer := &Tracer{
-		serviceName: serviceName,
-		dispatcher:  dispatcher,
+		serviceName:     serviceName,
+		dispatcher:      dispatcher,
+		useDualSpanMode: false,
 	}
 	tracer.propagtors = make(map[interface{}]Propagator)
 	tracer.propagtors[opentracing.TextMap] = NewDefaultTextMapPropagator()
 	tracer.propagtors[opentracing.HTTPHeaders] = NewTextMapPropagator(PropagatorOpts{}, URLCodex{})
-
 	for _, option := range options {
 		option(tracer)
 	}
@@ -107,7 +109,7 @@ func (tracer *Tracer) StartSpan(
 		}
 	}
 
-	spanContext := tracer.createSpanContext(parent)
+	spanContext := tracer.createSpanContext(parent, tracer.isServerSpan(sso.Tags))
 
 	span := &_Span{
 		tracer:        tracer,
@@ -127,18 +129,45 @@ func (tracer *Tracer) StartSpan(
 	return span
 }
 
-func (tracer *Tracer) createSpanContext(parent *SpanContext) *SpanContext {
+func (tracer *Tracer) isServerSpan(spanTags map[string]interface{}) bool {
+	if spanKind, ok := spanTags[string(ext.SpanKind)]; ok && spanKind == "server" {
+		return true
+	}
+	return false
+}
+
+func (tracer *Tracer) createSpanContext(parent *SpanContext, isServerSpan bool) *SpanContext {
 	if parent == nil || !parent.IsValid() {
 		return &SpanContext{
 			TraceID: tracer.idGenerator(),
 			SpanID:  tracer.idGenerator(),
 		}
 	}
-	return &SpanContext{
-		TraceID:  parent.TraceID,
-		SpanID:   tracer.idGenerator(),
-		ParentID: parent.SpanID,
-		Baggage:  parent.Baggage,
+
+	// This is a check to see if the tracer is configured to support single
+    // single span type (Zipkin style shared span id) or
+    // dual span type (client and server having their own span ids ).
+    // a. If tracer is not of dualSpanType and if it is a server span then we
+    // just return the parent context with the same shared span ids
+    // b. If tracer is not of dualSpanType and if the parent context is an extracted one from the wire
+    // then we assume this is the first span in the server and so just return the parent context
+    // with the same shared span ids
+	if !tracer.useDualSpanMode && (isServerSpan || parent.IsExtractedContext) {
+		return &SpanContext{
+			TraceID:            parent.TraceID,
+			SpanID:             parent.SpanID,
+			ParentID:           parent.ParentID,
+			Baggage:            parent.Baggage,
+			IsExtractedContext: false,
+		}
+	} else {
+		return &SpanContext{
+			TraceID:            parent.TraceID,
+			SpanID:             tracer.idGenerator(),
+			ParentID:           parent.SpanID,
+			Baggage:            parent.Baggage,
+			IsExtractedContext: false,
+		}
 	}
 }
 
