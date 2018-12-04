@@ -1,10 +1,10 @@
 hash: b6963927c0443115cdeb1fcbea1352a139652ba323520f2c1bd15985bc9e38c5
-updated: 2018-10-08T11:18:32.598985538+05:30
+updated: 2018-12-04T16:02:58.279853731+05:30
 imports:
 - name: github.com/codeskyblue/go-uuid
   version: 952abbca900b023c1a80bc522ff4795db50d9d6c
 - name: github.com/DataDog/zstd
-  version: 6672cee605cfd0c1bf8331fa33740e7241515c1c
+  version: c7161f8c63c045cbc7ca051dcc969dd0e4054de2
 - name: github.com/davecgh/go-spew
   version: 782f4967f2dc4564575ca782fe2d04090b5faca8
   subpackages:
@@ -18,7 +18,7 @@ imports:
 - name: github.com/eapache/queue
   version: 093482f3f8ce946c05bcba64badd2c82369e084d
 - name: github.com/golang/protobuf
-  version: ddf22928ea3c56eb4292a0adbbf5001b1e8e7d0d
+  version: 1d3f30b51784bec5aad268e59fd3c2fc1c2fe73f
   subpackages:
   - proto
   - ptypes
@@ -28,22 +28,22 @@ imports:
 - name: github.com/golang/snappy
   version: 2e65f85255dbc3072edf28d6b5b8efc472979f5a
 - name: github.com/google/uuid
-  version: d460ce9f8df2e77fb1ba55ca87fafed96c607494
+  version: 9b3b1e0f5f99ae461456d768e7d301a7acdaa2d8
 - name: github.com/opentracing/opentracing-go
   version: 1949ddbfd147afd4d964a9f00b24eb291e0e7c38
   subpackages:
   - ext
   - log
 - name: github.com/pierrec/lz4
-  version: 635575b42742856941dbc767b44905bb9ba083f6
+  version: 623b5a2f4d2a41e411730dcdfbfdaeb5c0c4564e
   subpackages:
   - internal/xxh32
 - name: github.com/pkg/errors
   version: 645ef00459ed84a119197bfb8d8205042c6df63d
 - name: github.com/rcrowley/go-metrics
-  version: e2704e165165ec55d062f5919b4b29494e9fa790
+  version: 3113b8401b8a98917cde58f8bbd42a1b1c03b1fd
 - name: github.com/Shopify/sarama
-  version: f21e149e5948e9c9b9034f1a19f430d62e00c4d3
+  version: 96e43a884d5ef985c98dc02e5ec6904a2b8b1d1c
 - name: golang.org/x/net
   version: 1c05540f6879653db88113bc4a2b70aec4bd491f
   subpackages:
@@ -66,11 +66,11 @@ imports:
   - unicode/bidi
   - unicode/norm
 - name: google.golang.org/genproto
-  version: af9cb2a35e7f169ec875002c1829c9b315cddc04
+  version: bd91e49a0898e27abb88c339b432fa53d7497ac0
   subpackages:
   - googleapis/rpc/status
 - name: google.golang.org/grpc
-  version: 179dc63634ee7ddc0cba387340062048410ae237
+  version: ca62c6b92c334f52c7e48b7cbf624f3b877fb092
   subpackages:
   - balancer
   - balancer/base
@@ -78,6 +78,7 @@ imports:
   - codes
   - connectivity
   - credentials
+  - credentials/internal
   - encoding
   - encoding/proto
   - grpclog
@@ -86,6 +87,7 @@ imports:
   - internal/channelz
   - internal/envconfig
   - internal/grpcrand
+  - internal/syscall
   - internal/transport
   - keepalive
   - metadata
@@ -99,7 +101,7 @@ imports:
   - tap
 testImports:
 - name: github.com/magiconair/properties
-  version: c2353362d570a7bfa228149c62842019201cfb71
+  version: 7c38529aac7222391b7a2661365177a97e21b998
   subpackages:
   - assert
 - name: github.com/pmezard/go-difflib
@@ -107,7 +109,7 @@ testImports:
   subpackages:
   - difflib
 - name: github.com/stretchr/testify
-  version: 2db35c88b92a1631e987089b5485a95e68bc5d3a
+  version: 8019298d9fa5a04fc2ad10ae03349df3483096a6
   subpackages:
   - assert
   - require

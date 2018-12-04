@@ -18,7 +18,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
 // TagType denotes the type of a Tag's value.
 type Tag_TagType int32
@@ -338,116 +338,15 @@ func (m *Tag) GetVBytes() []byte {
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*Tag) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _Tag_OneofMarshaler, _Tag_OneofUnmarshaler, _Tag_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*Tag) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*Tag_VStr)(nil),
 		(*Tag_VLong)(nil),
 		(*Tag_VDouble)(nil),
 		(*Tag_VBool)(nil),
 		(*Tag_VBytes)(nil),
 	}
-}
-
-func _Tag_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*Tag)
-	// myvalue
-	switch x := m.Myvalue.(type) {
-	case *Tag_VStr:
-		b.EncodeVarint(3<<3 | proto.WireBytes)
-		b.EncodeStringBytes(x.VStr)
-	case *Tag_VLong:
-		b.EncodeVarint(4<<3 | proto.WireVarint)
-		b.EncodeVarint(uint64(x.VLong))
-	case *Tag_VDouble:
-		b.EncodeVarint(5<<3 | proto.WireFixed64)
-		b.EncodeFixed64(math.Float64bits(x.VDouble))
-	case *Tag_VBool:
-		t := uint64(0)
-		if x.VBool {
-			t = 1
-		}
-		b.EncodeVarint(6<<3 | proto.WireVarint)
-		b.EncodeVarint(t)
-	case *Tag_VBytes:
-		b.EncodeVarint(7<<3 | proto.WireBytes)
-		b.EncodeRawBytes(x.VBytes)
-	case nil:
-	default:
-		return fmt.Errorf("Tag.Myvalue has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _Tag_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*Tag)
-	switch tag {
-	case 3: // myvalue.vStr
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeStringBytes()
-		m.Myvalue = &Tag_VStr{x}
-		return true, err
-	case 4: // myvalue.vLong
-		if wire != proto.WireVarint {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeVarint()
-		m.Myvalue = &Tag_VLong{int64(x)}
-		return true, err
-	case 5: // myvalue.vDouble
-		if wire != proto.WireFixed64 {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeFixed64()
-		m.Myvalue = &Tag_VDouble{math.Float64frombits(x)}
-		return true, err
-	case 6: // myvalue.vBool
-		if wire != proto.WireVarint {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeVarint()
-		m.Myvalue = &Tag_VBool{x != 0}
-		return true, err
-	case 7: // myvalue.vBytes
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeRawBytes(true)
-		m.Myvalue = &Tag_VBytes{x}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _Tag_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*Tag)
-	// myvalue
-	switch x := m.Myvalue.(type) {
-	case *Tag_VStr:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(len(x.VStr)))
-		n += len(x.VStr)
-	case *Tag_VLong:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(x.VLong))
-	case *Tag_VDouble:
-		n += 1 // tag and wire
-		n += 8
-	case *Tag_VBool:
-		n += 1 // tag and wire
-		n += 1
-	case *Tag_VBytes:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(len(x.VBytes)))
-		n += len(x.VBytes)
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 // You can optionally use Batch to send a collection of spans. Spans may not necessarily belong to one traceId.

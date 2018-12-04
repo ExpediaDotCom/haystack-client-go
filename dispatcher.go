@@ -31,6 +31,7 @@ import (
 type Dispatcher interface {
 	Name() string
 	Dispatch(span *_Span)
+	DispatchProtoSpan(span *Span)
 	Close()
 	SetLogger(logger Logger)
 }
@@ -59,6 +60,11 @@ func (d *InMemoryDispatcher) SetLogger(logger Logger) {
 /*Dispatch dispatches the span object*/
 func (d *InMemoryDispatcher) Dispatch(span *_Span) {
 	d.spans = append(d.spans, span)
+}
+
+/*DispatchProtoSpan dispatches proto span object*/
+func (d *InMemoryDispatcher) DispatchProtoSpan(span *Span) {
+	/* not implemented */
 }
 
 /*Close down the inMemory dispatcher*/
@@ -99,6 +105,11 @@ func (d *FileDispatcher) Dispatch(span *_Span) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+/*DispatchProtoSpan dispatches proto span object*/
+func (d *FileDispatcher) DispatchProtoSpan(span *Span) {
+	/* not implemented */
 }
 
 /*Close down the file dispatcher*/
