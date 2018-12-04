@@ -222,7 +222,7 @@ func (d *RemoteDispatcher) logs(span *_Span) []*Log {
 func (d *RemoteDispatcher) logFieldsToTags(fields []log.Field) []*Tag {
 	var spanTags []*Tag
 	for _, field := range fields {
-		spanTags = append(spanTags, d.ConvertToProtoTag(field.Key(), field.Value()))
+		spanTags = append(spanTags, ConvertToProtoTag(field.Key(), field.Value()))
 	}
 	return spanTags
 }
@@ -230,7 +230,7 @@ func (d *RemoteDispatcher) logFieldsToTags(fields []log.Field) []*Tag {
 func (d *RemoteDispatcher) tags(span *_Span) []*Tag {
 	var spanTags []*Tag
 	for _, tag := range span.tags {
-		spanTags = append(spanTags, d.ConvertToProtoTag(tag.Key, tag.Value))
+		spanTags = append(spanTags, ConvertToProtoTag(tag.Key, tag.Value))
 	}
 	return spanTags
 }
@@ -244,7 +244,7 @@ func (d *RemoteDispatcher) Close() {
 }
 
 /*ConvertToProtoTag converts to proto tag*/
-func (d *RemoteDispatcher) ConvertToProtoTag(key string, value interface{}) *Tag {
+func ConvertToProtoTag(key string, value interface{}) *Tag {
 	switch v := value.(type) {
 	case string:
 		return &Tag{
