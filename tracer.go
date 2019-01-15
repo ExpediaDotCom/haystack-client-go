@@ -34,7 +34,7 @@ type Tracer struct {
 	commonTags      []opentracing.Tag
 	timeNow         func() time.Time
 	idGenerator     func() string
-	propagtors      map[interface{}]Propagator
+	propagators     map[interface{}]Propagator
 	useDualSpanMode bool
 }
 
@@ -49,9 +49,9 @@ func NewTracer(
 		dispatcher:      dispatcher,
 		useDualSpanMode: false,
 	}
-	tracer.propagtors = make(map[interface{}]Propagator)
-	tracer.propagtors[opentracing.TextMap] = NewDefaultTextMapPropagator()
-	tracer.propagtors[opentracing.HTTPHeaders] = NewTextMapPropagator(PropagatorOpts{}, URLCodex{})
+	tracer.propagators = make(map[interface{}]Propagator)
+	tracer.propagators[opentracing.TextMap] = NewDefaultTextMapPropagator()
+	tracer.propagators[opentracing.HTTPHeaders] = NewTextMapPropagator(PropagatorOpts{}, URLCodex{})
 	for _, option := range options {
 		option(tracer)
 	}
@@ -176,7 +176,7 @@ func (tracer *Tracer) Inject(ctx opentracing.SpanContext, format interface{}, ca
 	if !ok {
 		return opentracing.ErrInvalidSpanContext
 	}
-	if injector, ok := tracer.propagtors[format]; ok {
+	if injector, ok := tracer.propagators[format]; ok {
 		return injector.Inject(c, carrier)
 	}
 	return opentracing.ErrUnsupportedFormat
@@ -187,7 +187,7 @@ func (tracer *Tracer) Extract(
 	format interface{},
 	carrier interface{},
 ) (opentracing.SpanContext, error) {
-	if extractor, ok := tracer.propagtors[format]; ok {
+	if extractor, ok := tracer.propagators[format]; ok {
 		return extractor.Extract(carrier)
 	}
 	return nil, opentracing.ErrUnsupportedFormat
