@@ -33,7 +33,7 @@ var TracerOptionsFactory TracerOptions
 /*Propagator registers a new Propagator*/
 func (t TracerOptions) Propagator(format interface{}, propagator Propagator) TracerOption {
 	return func(tracer *Tracer) {
-		tracer.propagtors[format] = propagator
+		tracer.propagators[format] = propagator
 	}
 }
 
