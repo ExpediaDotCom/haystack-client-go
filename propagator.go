@@ -130,16 +130,33 @@ func (p *TextMapPropagator) Inject(ctx *SpanContext, carrier interface{}) error 
 func (p *TextMapPropagator) Extract(carrier interface{}) (*SpanContext, error) {
 	baggage := make(map[string](string))
 	carrierMap := carrier.(map[string]string)
+
+	baggageKeyLowerCasePrefix := strings.ToLower(p.opts.BaggageKeyPrefix())
+	traceIDKeyLowerCase := strings.ToLower(p.opts.TraceIDKEY())
+	spanIDKeyLowerCase := strings.ToLower(p.opts.SpanIDKEY())
+	parentSpanIDKeyLowerCase := strings.ToLower(p.opts.ParentSpanIDKEY())
+
+	traceID := ""
+	spanID := ""
+	parentSpanID := ""
+
 	for k, v := range carrierMap {
-		if strings.HasPrefix(k, p.opts.BaggageKeyPrefix()) {
-			keySansPrefix := strings.TrimPrefix(k, p.opts.BaggageKeyPrefix())
+		lcKey := strings.ToLower(k)
+		if strings.HasPrefix(lcKey, baggageKeyLowerCasePrefix) {
+			keySansPrefix := k[len(p.opts.BaggageKeyPrefix()):]
 			baggage[keySansPrefix] = p.codex.Decode(v)
+		} else if lcKey == traceIDKeyLowerCase {
+			traceID = carrierMap[k]
+		} else if lcKey == spanIDKeyLowerCase {
+			spanID = carrierMap[k]
+		} else if lcKey == parentSpanIDKeyLowerCase {
+			parentSpanID = carrierMap[k]
 		}
 	}
 	return &SpanContext{
-		TraceID:            carrierMap[p.opts.TraceIDKEY()],
-		SpanID:             carrierMap[p.opts.SpanIDKEY()],
-		ParentID:           carrierMap[p.opts.ParentSpanIDKEY()],
+		TraceID:            traceID,
+		SpanID:             spanID,
+		ParentID:           parentSpanID,
 		Baggage:            baggage,
 		IsExtractedContext: true,
 	}, nil
