@@ -91,9 +91,11 @@ func (suite *TracerTestSuite) TestTracerWithDualSpanMode_1() {
 	serverTag := opentracing.Tag{Key: "span.kind", Value: "server"}
 	clientTag := opentracing.Tag{Key: "span.kind", Value: "client"}
 	carrier := map[string]string{
-		"Trace-ID":  "T1",
-		"Span-ID":   "S1",
-		"Parent-ID": "P1",
+		"trace-id":        "T1",
+		"Span-ID":         "S1",
+		"Parent-ID":       "P1",
+		"Baggage-myKey":   "myVal",
+		"baggage-mykey-1": "myval",
 	}
 	upstreamSpanContext, _ := suite.dualSpanModeTracer.Extract(opentracing.HTTPHeaders, carrier)
 	serverSpan := suite.dualSpanModeTracer.StartSpan("op1", serverTag, opentracing.ChildOf(upstreamSpanContext))
@@ -110,6 +112,8 @@ func (suite *TracerTestSuite) TestTracerWithDualSpanMode_1() {
 	receivedServerSpan := dispatcher.spans[1]
 	receivedServerSpanCtx := receivedServerSpan.Context().(*SpanContext)
 	suite.Equal(receivedServerSpanCtx.TraceID, "T1", "Trace Ids should match")
+	suite.Equal(receivedServerSpanCtx.Baggage["myKey"], "myVal", "baggage key should match")
+	suite.Equal(receivedServerSpanCtx.Baggage["mykey-1"], "myval", "baggage lowercase key should match")
 	suite.NotEqual(receivedServerSpanCtx.SpanID, "S1", "SpanId should be newly created")
 	suite.NotEqual(receivedServerSpanCtx.SpanID, "P1", "SpanId should be newly created")
 	suite.NotEqual(receivedServerSpanCtx.SpanID, "T1", "SpanId should be newly created")
