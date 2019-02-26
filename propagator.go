@@ -64,10 +64,10 @@ func (c URLCodex) Decode(value string) string {
 
 /*PropagatorOpts defines the options need by a propagator*/
 type PropagatorOpts struct {
-	traceIDKEY       string
-	spanIDKEY        string
-	parentSpanIDKEY  string
-	baggageKeyPrefix string
+	TraceIDKEYName       string
+	SpanIDKEYName        string
+	ParentSpanIDKEYName  string
+	baggagePrefixKEYName string
 }
 
 var defaultPropagatorOpts = PropagatorOpts{}
@@ -75,32 +75,32 @@ var defaultCodex = DefaultCodex{}
 
 /*TraceIDKEY returns the trace id key in the propagator*/
 func (p *PropagatorOpts) TraceIDKEY() string {
-	if p.traceIDKEY != "" {
-		return p.traceIDKEY
+	if p.TraceIDKEYName != "" {
+		return p.TraceIDKEYName
 	}
 	return "Trace-ID"
 }
 
 /*SpanIDKEY returns the span id key in the propagator*/
 func (p *PropagatorOpts) SpanIDKEY() string {
-	if p.spanIDKEY != "" {
-		return p.spanIDKEY
+	if p.SpanIDKEYName != "" {
+		return p.SpanIDKEYName
 	}
 	return "Span-ID"
 }
 
 /*ParentSpanIDKEY returns the parent span id key in the propagator*/
 func (p *PropagatorOpts) ParentSpanIDKEY() string {
-	if p.parentSpanIDKEY != "" {
-		return p.parentSpanIDKEY
+	if p.ParentSpanIDKEYName != "" {
+		return p.ParentSpanIDKEYName
 	}
 	return "Parent-ID"
 }
 
 /*BaggageKeyPrefix returns the baggage key prefix*/
 func (p *PropagatorOpts) BaggageKeyPrefix() string {
-	if p.baggageKeyPrefix != "" {
-		return p.baggageKeyPrefix
+	if p.baggagePrefixKEYName != "" {
+		return p.baggagePrefixKEYName
 	}
 	return "Baggage-"
 }
