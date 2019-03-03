@@ -67,7 +67,7 @@ type PropagatorOpts struct {
 	TraceIDKEYName       string
 	SpanIDKEYName        string
 	ParentSpanIDKEYName  string
-	baggagePrefixKEYName string
+	BaggagePrefixKEYName string
 }
 
 var defaultPropagatorOpts = PropagatorOpts{}
@@ -99,8 +99,8 @@ func (p *PropagatorOpts) ParentSpanIDKEY() string {
 
 /*BaggageKeyPrefix returns the baggage key prefix*/
 func (p *PropagatorOpts) BaggageKeyPrefix() string {
-	if p.baggagePrefixKEYName != "" {
-		return p.baggagePrefixKEYName
+	if p.BaggagePrefixKEYName != "" {
+		return p.BaggagePrefixKEYName
 	}
 	return "Baggage-"
 }
