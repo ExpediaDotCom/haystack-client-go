@@ -58,9 +58,9 @@ func main() {
 	}()
 
 	carrier := opentracing.HTTPHeadersCarrier(http.Header(map[string][]string{
-		"Trace-Id":  []string{"409dec0e-473e-11e9-81cc-186590cf29af"},
-		"Span-Id":   []string{"509df8d3-473e-11e9-81cc-186590cf29af"},
-		"Parent-Id": []string{"609df88c-473e-11e9-81cc-186590cf29af"},
+		"Trace-Id":  {"409dec0e-473e-11e9-81cc-186590cf29af"},
+		"Span-Id":   {"509df8d3-473e-11e9-81cc-186590cf29af"},
+		"Parent-Id": {"609df88c-473e-11e9-81cc-186590cf29af"},
 	}))
 	clientContext, err := tracer.Extract(opentracing.HTTPHeaders, carrier)
 	if err != nil {
