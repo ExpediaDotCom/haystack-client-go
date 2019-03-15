@@ -223,7 +223,7 @@ func (suite *TracerTestSuite) TestTracerInject() {
 
 	suite.NotEqual("", ctx.(*SpanContext).TraceID)
 	suite.NotEqual("", ctx.(*SpanContext).SpanID)
-	suite.NotEqual("", ctx.(*SpanContext).ParentID)
+	suite.Equal("", ctx.(*SpanContext).ParentID)
 	suite.Equal(true, ctx.(*SpanContext).IsExtractedContext)
 }
 
