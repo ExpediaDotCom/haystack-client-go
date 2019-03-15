@@ -19,6 +19,7 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"time"
 
 	haystack "github.com/ExpediaDotCom/haystack-client-go"
@@ -56,7 +57,16 @@ func main() {
 		}
 	}()
 
-	span1 := tracer.StartSpan("operation1", opentracing.Tag{Key: "my-tag", Value: "something"})
+	carrier := opentracing.HTTPHeadersCarrier(http.Header(map[string][]string{
+		"Trace-Id":  {"409dec0e-473e-11e9-81cc-186590cf29af"},
+		"Span-Id":   {"509df8d3-473e-11e9-81cc-186590cf29af"},
+		"Parent-Id": {"609df88c-473e-11e9-81cc-186590cf29af"},
+	}))
+	clientContext, err := tracer.Extract(opentracing.HTTPHeaders, carrier)
+	if err != nil {
+		panic(err)
+	}
+	span1 := tracer.StartSpan("operation1", opentracing.ChildOf(clientContext), opentracing.Tag{Key: "my-tag", Value: "something"})
 	span1.SetTag(string(ext.SpanKind), ext.SpanKindRPCServerEnum)
 	span1.SetTag(string(ext.Error), false)
 	span1.SetTag(string(ext.HTTPStatusCode), 200)
@@ -67,6 +77,12 @@ func main() {
 	// a slightly different way to set the tags on a span
 	ext.Error.Set(span2, true)
 	ext.HTTPStatusCode.Set(span1, 404)
+
+	// inject the span context in http header using tracer.Inject(...)
+	req, _ := http.NewRequest(http.MethodGet, "https://expediadotcom.github.io/haystack/", nil)
+	tracer.Inject(span2.Context(), opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier(req.Header))
+	//
+	//log.Println(req.Header)
 
 	span2.Finish()
 	span1.Finish()

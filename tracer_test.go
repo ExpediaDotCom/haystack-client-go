@@ -19,9 +19,11 @@ package haystack
 
 import (
 	"io"
+	"strings"
 	"testing"
 
 	opentracing "github.com/opentracing/opentracing-go"
+
 	"github.com/stretchr/testify/suite"
 )
 
@@ -90,14 +92,15 @@ func (suite *TracerTestSuite) TestTracerProperties() {
 func (suite *TracerTestSuite) TestTracerWithDualSpanMode_1() {
 	serverTag := opentracing.Tag{Key: "span.kind", Value: "server"}
 	clientTag := opentracing.Tag{Key: "span.kind", Value: "client"}
-	carrier := map[string]string{
+	headerMap := map[string]string{
 		"trace-id":        "T1",
 		"Span-ID":         "S1",
 		"Parent-ID":       "P1",
 		"Baggage-myKey":   "myVal",
 		"baggage-mykey-1": "myval",
 	}
-	upstreamSpanContext, _ := suite.dualSpanModeTracer.Extract(opentracing.HTTPHeaders, carrier)
+
+	upstreamSpanContext, _ := suite.dualSpanModeTracer.Extract(opentracing.HTTPHeaders, buildHTTPHeaderCarrier(headerMap))
 	serverSpan := suite.dualSpanModeTracer.StartSpan("op1", serverTag, opentracing.ChildOf(upstreamSpanContext))
 	clientSpan := suite.dualSpanModeTracer.StartSpan("op2", clientTag, opentracing.ChildOf(serverSpan.Context()))
 
@@ -112,8 +115,8 @@ func (suite *TracerTestSuite) TestTracerWithDualSpanMode_1() {
 	receivedServerSpan := dispatcher.spans[1]
 	receivedServerSpanCtx := receivedServerSpan.Context().(*SpanContext)
 	suite.Equal(receivedServerSpanCtx.TraceID, "T1", "Trace Ids should match")
-	suite.Equal(receivedServerSpanCtx.Baggage["myKey"], "myVal", "baggage key should match")
-	suite.Equal(receivedServerSpanCtx.Baggage["mykey-1"], "myval", "baggage lowercase key should match")
+	suite.Equal(receivedServerSpanCtx.Baggage[strings.ToLower("myKey")], "myVal", "baggage key should match")
+	suite.Equal(receivedServerSpanCtx.Baggage[strings.ToLower("mykey-1")], "myval", "baggage lowercase key should match")
 	suite.NotEqual(receivedServerSpanCtx.SpanID, "S1", "SpanId should be newly created")
 	suite.NotEqual(receivedServerSpanCtx.SpanID, "P1", "SpanId should be newly created")
 	suite.NotEqual(receivedServerSpanCtx.SpanID, "T1", "SpanId should be newly created")
@@ -131,12 +134,13 @@ func (suite *TracerTestSuite) TestTracerWithDualSpanMode_1() {
 func (suite *TracerTestSuite) TestTracerWithSingleSpanMode_1() {
 	serverTag := opentracing.Tag{Key: "span.kind", Value: "server"}
 	clientTag := opentracing.Tag{Key: "span.kind", Value: "client"}
-	carrier := map[string]string{
+	headerMap := map[string]string{
 		"Trace-ID":  "T1",
 		"Span-ID":   "S1",
 		"Parent-ID": "P1",
 	}
-	upstreamSpanContext, _ := suite.tracer.Extract(opentracing.HTTPHeaders, carrier)
+
+	upstreamSpanContext, _ := suite.tracer.Extract(opentracing.HTTPHeaders, buildHTTPHeaderCarrier(headerMap))
 	serverSpan := suite.tracer.StartSpan("op1", serverTag, opentracing.ChildOf(upstreamSpanContext))
 	clientSpan := suite.tracer.StartSpan("op2", clientTag, opentracing.ChildOf(serverSpan.Context()))
 
@@ -166,12 +170,13 @@ func (suite *TracerTestSuite) TestTracerWithSingleSpanMode_1() {
 func (suite *TracerTestSuite) TestTracerWithSingleSpanMode_2() {
 	serverTag := opentracing.Tag{Key: "error", Value: true}
 	clientTag := opentracing.Tag{Key: "error", Value: false}
-	carrier := map[string]string{
+	headerMap := map[string]string{
 		"Trace-ID":  "T1",
 		"Span-ID":   "S1",
 		"Parent-ID": "P1",
 	}
-	upstreamSpanContext, _ := suite.tracer.Extract(opentracing.HTTPHeaders, carrier)
+
+	upstreamSpanContext, _ := suite.tracer.Extract(opentracing.HTTPHeaders, buildHTTPHeaderCarrier(headerMap))
 	serverSpan := suite.tracer.StartSpan("op1", serverTag, opentracing.ChildOf(upstreamSpanContext))
 	clientSpan := suite.tracer.StartSpan("op2", clientTag, opentracing.ChildOf(serverSpan.Context()))
 
@@ -202,7 +207,8 @@ func (suite *TracerTestSuite) TestTracerWithSingleSpanMode_2() {
 }
 
 func (suite *TracerTestSuite) TestTracerInject() {
-	carrier := make(map[string]string)
+	carrier := opentracing.HTTPHeadersCarrier(make(map[string][]string))
+
 	span1 := suite.tracer.StartSpan("op1")
 	err := suite.tracer.Inject(span1.Context(), opentracing.HTTPHeaders, carrier)
 	if err != nil {
@@ -215,10 +221,18 @@ func (suite *TracerTestSuite) TestTracerInject() {
 		panic(err)
 	}
 
-	suite.Equal(carrier["Trace-ID"], ctx.(*SpanContext).TraceID)
-	suite.Equal(carrier["Span-ID"], ctx.(*SpanContext).SpanID)
-	suite.Equal(carrier["Parent-ID"], ctx.(*SpanContext).ParentID)
+	suite.NotEqual("", ctx.(*SpanContext).TraceID)
+	suite.NotEqual("", ctx.(*SpanContext).SpanID)
+	suite.Equal("", ctx.(*SpanContext).ParentID)
 	suite.Equal(true, ctx.(*SpanContext).IsExtractedContext)
+}
+
+func buildHTTPHeaderCarrier(headerMap map[string]string) *opentracing.HTTPHeadersCarrier {
+	httpHeaderCarrier := opentracing.HTTPHeadersCarrier(make(map[string][]string))
+	for k, v := range headerMap {
+		httpHeaderCarrier.Set(k, v)
+	}
+	return &httpHeaderCarrier
 }
 
 func TestUnitTracerSuite(t *testing.T) {
